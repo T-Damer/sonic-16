@@ -17,18 +17,20 @@ This directory is a vertical slice for rebuilding the Sonic 16 concept with engi
 
 Controls:
 
-- `WASD` / arrows: move left/right and in depth
-- `Space` / `K`: jump
-- `R`: reset to the checkpoint
-- `Esc` / `P`: pause
+| Action | Keyboard | Gamepad |
+| --- | --- | --- |
+| Move left/right and in depth | `WASD` / arrows | Left stick / D-pad |
+| Jump | `Space` / `K` | A / Cross |
+| Reset to checkpoint | `R` | — |
+| Pause | `Esc` / `P` | Start |
 
 ## What this slice demonstrates
 
 - `CharacterBody3D.move_and_slide()` instead of the custom 2D swept-AABB solver.
 - A real X/Z movement plane with camera-relative controls.
-- InputMap-backed jump handling with coyote time and input buffering.
+- `InputMap`-backed keyboard and gamepad input, including coyote time and jump buffering.
 - Orthographic fixed-angle camera.
-- Dynamic directional, spot and omni lights with shadows.
+- Dynamic directional and spot lights with shadows.
 - `AnimatableBody3D` moving platform for the skiff sequence.
 - `Area3D` pickups and hazards.
 - A compact level route inspired by the demo: sewer entrance, machinery lanes, descent, low deck, spikes, skiff pit, arena and blast door.
