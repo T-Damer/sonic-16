@@ -1,0 +1,35 @@
+name: Validate Godot prototype
+
+on:
+  push:
+    paths:
+      - "godot/**"
+      - ".github/workflows/godot-validate.yml"
+  pull_request:
+    paths:
+      - "godot/**"
+      - ".github/workflows/godot-validate.yml"
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Download Godot 4.7.1
+        run: |
+          curl -L --fail --retry 3 \
+            -o godot.zip \
+            https://github.com/godotengine/godot/releases/download/4.7.1-stable/Godot_v4.7.1-stable_linux.x86_64.zip
+          unzip -q godot.zip
+          mv Godot_v4.7.1-stable_linux.x86_64 godot-bin
+          chmod +x godot-bin
+
+      - name: Import project and validate scripts
+        run: ./godot-bin --headless --path godot --editor --quit-after 3
+
+      - name: Boot main scene
+        run: ./godot-bin --headless --path godot --quit-after 5
