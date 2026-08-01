@@ -194,18 +194,29 @@ func set_spawn(new_spawn: Vector3) -> void:
 
 
 func _install_default_input() -> void:
-    _ensure_action(&"move_left", [KEY_A, KEY_LEFT])
-    _ensure_action(&"move_right", [KEY_D, KEY_RIGHT])
-    _ensure_action(&"move_up", [KEY_W, KEY_UP])
-    _ensure_action(&"move_down", [KEY_S, KEY_DOWN])
-    _ensure_action(&"jump", [KEY_SPACE, KEY_K])
-    _ensure_action(&"pause", [KEY_ESCAPE, KEY_P])
-    _ensure_action(&"restart", [KEY_R])
+    _ensure_keyboard_action(&"move_left", [KEY_A, KEY_LEFT])
+    _ensure_keyboard_action(&"move_right", [KEY_D, KEY_RIGHT])
+    _ensure_keyboard_action(&"move_up", [KEY_W, KEY_UP])
+    _ensure_keyboard_action(&"move_down", [KEY_S, KEY_DOWN])
+    _ensure_keyboard_action(&"jump", [KEY_SPACE, KEY_K])
+    _ensure_keyboard_action(&"pause", [KEY_ESCAPE, KEY_P])
+    _ensure_keyboard_action(&"restart", [KEY_R])
+
+    _ensure_joy_button(&"move_left", JOY_BUTTON_DPAD_LEFT)
+    _ensure_joy_button(&"move_right", JOY_BUTTON_DPAD_RIGHT)
+    _ensure_joy_button(&"move_up", JOY_BUTTON_DPAD_UP)
+    _ensure_joy_button(&"move_down", JOY_BUTTON_DPAD_DOWN)
+    _ensure_joy_button(&"jump", JOY_BUTTON_A)
+    _ensure_joy_button(&"pause", JOY_BUTTON_START)
+
+    _ensure_joy_axis(&"move_left", JOY_AXIS_LEFT_X, -1.0)
+    _ensure_joy_axis(&"move_right", JOY_AXIS_LEFT_X, 1.0)
+    _ensure_joy_axis(&"move_up", JOY_AXIS_LEFT_Y, -1.0)
+    _ensure_joy_axis(&"move_down", JOY_AXIS_LEFT_Y, 1.0)
 
 
-func _ensure_action(action: StringName, keycodes: Array) -> void:
-    if not InputMap.has_action(action):
-        InputMap.add_action(action, 0.2)
+func _ensure_keyboard_action(action: StringName, keycodes: Array) -> void:
+    _ensure_input_action(action)
 
     for keycode in keycodes:
         var already_bound := false
@@ -220,3 +231,37 @@ func _ensure_action(action: StringName, keycodes: Array) -> void:
         var event := InputEventKey.new()
         event.physical_keycode = keycode
         InputMap.action_add_event(action, event)
+
+
+func _ensure_joy_button(action: StringName, button_index: JoyButton) -> void:
+    _ensure_input_action(action)
+
+    for existing_event in InputMap.action_get_events(action):
+        if existing_event is InputEventJoypadButton and existing_event.button_index == button_index:
+            return
+
+    var event := InputEventJoypadButton.new()
+    event.button_index = button_index
+    InputMap.action_add_event(action, event)
+
+
+func _ensure_joy_axis(action: StringName, axis: JoyAxis, axis_value: float) -> void:
+    _ensure_input_action(action)
+
+    for existing_event in InputMap.action_get_events(action):
+        if (
+            existing_event is InputEventJoypadMotion
+            and existing_event.axis == axis
+            and is_equal_approx(existing_event.axis_value, axis_value)
+        ):
+            return
+
+    var event := InputEventJoypadMotion.new()
+    event.axis = axis
+    event.axis_value = axis_value
+    InputMap.action_add_event(action, event)
+
+
+func _ensure_input_action(action: StringName) -> void:
+    if not InputMap.has_action(action):
+        InputMap.add_action(action, 0.22)
