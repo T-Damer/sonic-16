@@ -1,0 +1,19 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/player_controller.gd" id="1_player"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape_player"]
+radius = 0.28
+height = 1.16
+
+[node name="Player" type="CharacterBody3D" groups=["player"]]
+script = ExtResource("1_player")
+floor_snap_length = 0.22
+floor_max_angle = 0.872665
+safe_margin = 0.03
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+position = Vector3(0, 0.58, 0)
+shape = SubResource("CapsuleShape_player")
+
+[node name="VisualRoot" type="Node3D" parent="."]
