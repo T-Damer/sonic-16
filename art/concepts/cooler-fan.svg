@@ -1,0 +1,55 @@
+<svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <!-- Concept card: wall-mounted industrial extractor fan in riveted housing, image-to-3D input. -->
+  <defs>
+    <linearGradient id="panel" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3f7fae"/>
+      <stop offset="1" stop-color="#1d4a70"/>
+    </linearGradient>
+    <linearGradient id="rim" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#cfe8f4"/>
+      <stop offset="0.5" stop-color="#9fd0e8"/>
+      <stop offset="1" stop-color="#527e96"/>
+    </linearGradient>
+    <linearGradient id="blade" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#c2d8e2"/>
+      <stop offset="1" stop-color="#6f95a8"/>
+    </linearGradient>
+    <radialGradient id="cavity" cx="0.45" cy="0.4" r="0.8">
+      <stop offset="0" stop-color="#1d4258"/>
+      <stop offset="1" stop-color="#0a1d2a"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="1024" height="1024" fill="#e9eaee"/>
+
+  <!-- riveted wall panel -->
+  <rect x="152" y="152" width="720" height="720" rx="34" fill="url(#panel)"/>
+  <g fill="#cfe8f4" opacity="0.85">
+    <circle cx="200" cy="200" r="11"/><circle cx="824" cy="200" r="11"/>
+    <circle cx="200" cy="824" r="11"/><circle cx="824" cy="824" r="11"/>
+    <circle cx="512" cy="192" r="9"/><circle cx="512" cy="832" r="9"/>
+    <circle cx="192" cy="512" r="9"/><circle cx="832" cy="512" r="9"/>
+  </g>
+  <rect x="176" y="176" width="672" height="672" rx="26" fill="none" stroke="#12324a" stroke-width="10" opacity="0.6"/>
+
+  <!-- fan ring -->
+  <circle cx="512" cy="512" r="300" fill="url(#rim)"/>
+  <circle cx="512" cy="512" r="258" fill="url(#cavity)"/>
+
+  <!-- four pitched blades -->
+  <g fill="url(#blade)">
+    <path d="M512 500 Q470 330 540 280 Q620 330 588 480 Z"/>
+    <path d="M524 512 Q694 470 744 540 Q694 620 544 588 Z"/>
+    <path d="M512 524 Q554 694 484 744 Q404 694 436 544 Z"/>
+    <path d="M500 512 Q330 554 280 484 Q330 404 480 436 Z"/>
+  </g>
+  <!-- hub -->
+  <circle cx="512" cy="512" r="74" fill="url(#rim)"/>
+  <circle cx="490" cy="490" r="26" fill="#eaf6fb" opacity="0.9"/>
+
+  <!-- protective ring bolts -->
+  <g fill="#cfe8f4">
+    <circle cx="512" cy="222" r="10"/><circle cx="802" cy="512" r="10"/>
+    <circle cx="512" cy="802" r="10"/><circle cx="222" cy="512" r="10"/>
+  </g>
+</svg>

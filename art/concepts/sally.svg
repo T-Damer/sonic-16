@@ -1,0 +1,91 @@
+<svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <!-- Concept card: ground-squirrel princess ally, 3/4 front view, image-to-3D input.
+       Fan depiction of a SEGA-owned character; non-commercial project. -->
+  <defs>
+    <radialGradient id="fur" cx="0.38" cy="0.3" r="1">
+      <stop offset="0" stop-color="#f0c98c"/>
+      <stop offset="1" stop-color="#c08a4a"/>
+    </radialGradient>
+    <radialGradient id="cream" cx="0.4" cy="0.32" r="1">
+      <stop offset="0" stop-color="#ffedcb"/>
+      <stop offset="1" stop-color="#e7c295"/>
+    </radialGradient>
+    <radialGradient id="hair" cx="0.38" cy="0.3" r="1">
+      <stop offset="0" stop-color="#d0602f"/>
+      <stop offset="1" stop-color="#8c3416"/>
+    </radialGradient>
+    <radialGradient id="vest" cx="0.38" cy="0.3" r="1">
+      <stop offset="0" stop-color="#4a8ae0"/>
+      <stop offset="1" stop-color="#1d4f9c"/>
+    </radialGradient>
+    <radialGradient id="boot" cx="0.38" cy="0.3" r="1">
+      <stop offset="0" stop-color="#5a50c8"/>
+      <stop offset="1" stop-color="#2c2478"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="1024" height="1024" fill="#e9eaee"/>
+  <ellipse cx="512" cy="912" rx="200" ry="32" fill="#000000" opacity="0.14"/>
+
+  <!-- tail: thick, curved up behind -->
+  <path d="M640 760 Q810 720 800 540 Q794 430 700 400 Q760 520 700 620 Q660 700 600 730 Z" fill="url(#hair)"/>
+
+  <!-- hair mass behind head -->
+  <path d="M380 220 Q330 420 380 520 Q420 560 452 540 Q400 420 430 300 Z" fill="url(#hair)"/>
+  <path d="M660 230 Q710 400 664 520 Q630 556 600 536 Q650 420 620 300 Z" fill="url(#hair)"/>
+
+  <!-- legs + boots -->
+  <rect x="462" y="670" width="40" height="130" rx="20" fill="url(#fur)"/>
+  <rect x="546" y="670" width="40" height="130" rx="20" fill="url(#fur)"/>
+  <g>
+    <ellipse cx="470" cy="856" rx="78" ry="46" fill="url(#boot)"/>
+    <ellipse cx="512" cy="848" rx="36" ry="34" fill="url(#boot)"/>
+    <rect x="428" y="790" width="86" height="30" rx="15" fill="url(#boot)"/>
+    <ellipse cx="590" cy="856" rx="78" ry="46" fill="url(#boot)"/>
+    <ellipse cx="632" cy="848" rx="36" ry="34" fill="url(#boot)"/>
+    <rect x="548" y="790" width="86" height="30" rx="15" fill="url(#boot)"/>
+  </g>
+
+  <!-- torso -->
+  <ellipse cx="520" cy="620" rx="104" ry="112" fill="url(#fur)"/>
+  <ellipse cx="530" cy="648" rx="62" ry="72" fill="url(#cream)"/>
+
+  <!-- open vest -->
+  <path d="M424 540 Q440 500 480 512 L470 700 Q436 690 420 640 Z" fill="url(#vest)"/>
+  <path d="M616 540 Q600 500 560 512 L572 700 Q606 690 622 640 Z" fill="url(#vest)"/>
+  <path d="M430 528 Q520 480 612 528 L600 560 Q520 516 442 560 Z" fill="url(#vest)"/>
+
+  <!-- arms -->
+  <rect x="392" y="580" width="36" height="122" rx="18" transform="rotate(16 410 640)" fill="url(#fur)"/>
+  <circle cx="382" cy="702" r="34" fill="url(#cream)"/>
+  <rect x="612" y="580" width="36" height="122" rx="18" transform="rotate(-16 630 640)" fill="url(#fur)"/>
+  <circle cx="656" cy="702" r="34" fill="url(#cream)"/>
+
+  <!-- head -->
+  <ellipse cx="522" cy="370" rx="168" ry="160" fill="url(#fur)"/>
+
+  <!-- fringe -->
+  <path d="M370 320 Q380 220 480 200 Q430 260 450 320 Q400 300 370 320 Z" fill="url(#hair)"/>
+  <path d="M440 250 Q520 180 620 218 Q560 250 560 310 Q510 250 440 250 Z" fill="url(#hair)"/>
+  <path d="M600 240 Q680 240 680 330 Q630 290 586 300 Z" fill="url(#hair)"/>
+
+  <!-- ears -->
+  <ellipse cx="398" cy="238" rx="34" ry="42" fill="url(#fur)"/>
+  <ellipse cx="404" cy="244" rx="18" ry="24" fill="url(#cream)"/>
+  <ellipse cx="646" cy="238" rx="34" ry="42" fill="url(#fur)"/>
+  <ellipse cx="640" cy="244" rx="18" ry="24" fill="url(#cream)"/>
+
+  <!-- face: muzzle, eyes, nose -->
+  <ellipse cx="540" cy="428" rx="86" ry="58" fill="url(#cream)"/>
+  <ellipse cx="472" cy="352" rx="40" ry="52" fill="#ffffff"/>
+  <ellipse cx="590" cy="352" rx="40" ry="52" fill="#ffffff"/>
+  <ellipse cx="482" cy="360" rx="18" ry="28" fill="#2b4d7a"/>
+  <ellipse cx="580" cy="360" rx="18" ry="28" fill="#2b4d7a"/>
+  <ellipse cx="478" cy="350" rx="6" ry="10" fill="#ffffff"/>
+  <ellipse cx="576" cy="350" rx="6" ry="10" fill="#ffffff"/>
+  <ellipse cx="536" cy="412" rx="20" ry="14" fill="#141414"/>
+  <path d="M496 456 Q540 484 586 458" stroke="#8a5a33" stroke-width="8" fill="none" stroke-linecap="round"/>
+  <!-- eyelashes -->
+  <path d="M436 322 Q452 306 470 302" stroke="#8c3416" stroke-width="8" fill="none" stroke-linecap="round"/>
+  <path d="M622 322 Q608 306 590 302" stroke="#8c3416" stroke-width="8" fill="none" stroke-linecap="round"/>
+</svg>

@@ -1,0 +1,56 @@
+<svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <!-- Concept card: industrial blast door with zigzag seam in a green frame, image-to-3D input. -->
+  <defs>
+    <linearGradient id="frame" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#5a9468"/>
+      <stop offset="1" stop-color="#2c5a3a"/>
+    </linearGradient>
+    <linearGradient id="panel" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#aeb9c4"/>
+      <stop offset="0.5" stop-color="#7d8b95"/>
+      <stop offset="1" stop-color="#4c565f"/>
+    </linearGradient>
+    <linearGradient id="panelR" x1="1" y1="0" x2="0" y2="0">
+      <stop offset="0" stop-color="#aeb9c4"/>
+      <stop offset="0.5" stop-color="#7d8b95"/>
+      <stop offset="1" stop-color="#4c565f"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1024" height="1024" fill="#e9eaee"/>
+
+  <!-- green frame housing, tapered like the reference -->
+  <path d="M232 940 L320 120 L704 120 L792 940 Z" fill="url(#frame)"/>
+  <path d="M262 940 L340 150 L684 150 L762 940 Z" fill="#204a2e"/>
+
+  <!-- warning light above -->
+  <rect x="482" y="80" width="60" height="46" rx="10" fill="#3a3f45"/>
+  <circle cx="512" cy="103" r="16" fill="#ffd23f"/>
+
+  <!-- door panels with central zigzag seam -->
+  <g>
+    <path d="M300 900 L356 190 L512 190
+             L488 280 L536 350 L484 430 L536 510 L484 590 L536 670 L488 760 L512 900 Z" fill="url(#panel)"/>
+    <path d="M724 900 L668 190 L512 190
+             L488 280 L536 350 L484 430 L536 510 L484 590 L536 670 L488 760 L512 900 Z" fill="url(#panelR)"/>
+  </g>
+  <!-- seam shadow -->
+  <path d="M512 190 L488 280 L536 350 L484 430 L536 510 L484 590 L536 670 L488 760 L512 900"
+        fill="none" stroke="#20262c" stroke-width="14" stroke-linejoin="round"/>
+
+  <!-- panel ribs -->
+  <g stroke="#39424b" stroke-width="8" opacity="0.7">
+    <path d="M352 260 L452 260"/><path d="M572 260 L672 260"/>
+    <path d="M344 400 L444 400"/><path d="M580 400 L680 400"/>
+    <path d="M336 540 L436 540"/><path d="M588 540 L688 540"/>
+    <path d="M328 680 L428 680"/><path d="M596 680 L696 680"/>
+  </g>
+  <!-- hazard chevrons at the base -->
+  <g>
+    <path d="M312 900 L352 860 L392 900 Z" fill="#ffd23f"/>
+    <path d="M392 900 L432 860 L472 900 Z" fill="#1b1f26"/>
+    <path d="M472 900 L512 860 L552 900 Z" fill="#ffd23f"/>
+    <path d="M552 900 L592 860 L632 900 Z" fill="#1b1f26"/>
+    <path d="M632 900 L672 860 L712 900 Z" fill="#ffd23f"/>
+  </g>
+</svg>

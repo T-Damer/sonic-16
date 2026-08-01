@@ -1,0 +1,16 @@
+{
+    "models": [
+        {
+            "id": "sonic-trellis-v1",
+            "name": "Sonic (generated)",
+            "file": "sonic-trellis.glb",
+            "description": "TRELLIS lift of the flux concept — ~14.8k tris, 1024px baked texture. Test import."
+        },
+        {
+            "id": "swatbot-trellis-v1",
+            "name": "SWATbot (generated)",
+            "file": "swatbot-trellis.glb",
+            "description": "TRELLIS lift of the flux concept — ~32k tris, 1024px baked texture. Test import."
+        }
+    ]
+}

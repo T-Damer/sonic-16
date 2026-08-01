@@ -1,0 +1,67 @@
+<svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <!-- Concept card: floating eye-camera badnik with grabber tentacles, 3/4 front, image-to-3D input. -->
+  <defs>
+    <radialGradient id="body" cx="0.36" cy="0.28" r="1">
+      <stop offset="0" stop-color="#b37fe8"/>
+      <stop offset="0.55" stop-color="#8b52c9"/>
+      <stop offset="1" stop-color="#4a2a72"/>
+    </radialGradient>
+    <radialGradient id="cap" cx="0.38" cy="0.3" r="1">
+      <stop offset="0" stop-color="#6f4699"/>
+      <stop offset="1" stop-color="#3a2158"/>
+    </radialGradient>
+    <radialGradient id="lens" cx="0.4" cy="0.35" r="0.9">
+      <stop offset="0" stop-color="#d8fbff"/>
+      <stop offset="0.4" stop-color="#5ae8ff"/>
+      <stop offset="0.8" stop-color="#0e9cc0"/>
+      <stop offset="1" stop-color="#075d78"/>
+    </radialGradient>
+    <linearGradient id="metal" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#d9cdec"/>
+      <stop offset="1" stop-color="#8a7aa8"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1024" height="1024" fill="#e9eaee"/>
+  <ellipse cx="512" cy="920" rx="180" ry="26" fill="#000000" opacity="0.12"/>
+
+  <!-- tentacles: four grabber arms hanging below -->
+  <g stroke-linecap="round">
+    <path d="M400 600 Q350 700 380 780" stroke="#3a2158" stroke-width="34" fill="none"/>
+    <path d="M380 786 L346 850 L402 838 Z" fill="url(#metal)"/>
+    <path d="M470 640 Q450 740 470 820" stroke="#4a2a72" stroke-width="36" fill="none"/>
+    <path d="M470 826 L440 894 L498 878 Z" fill="url(#metal)"/>
+    <path d="M560 640 Q580 740 562 820" stroke="#4a2a72" stroke-width="36" fill="none"/>
+    <path d="M562 826 L534 890 L594 880 Z" fill="url(#metal)"/>
+    <path d="M624 600 Q676 700 650 780" stroke="#3a2158" stroke-width="34" fill="none"/>
+    <path d="M650 786 L622 844 L682 836 Z" fill="url(#metal)"/>
+  </g>
+
+  <!-- hover glow underneath -->
+  <ellipse cx="512" cy="640" rx="110" ry="30" fill="#7fe4ff" opacity="0.4"/>
+
+  <!-- main housing -->
+  <ellipse cx="512" cy="440" rx="240" ry="212" fill="url(#body)"/>
+  <!-- armoured cap -->
+  <path d="M290 380 Q330 220 512 214 Q694 220 734 380 Q640 320 512 318 Q384 320 290 380 Z" fill="url(#cap)"/>
+  <!-- cap rivets -->
+  <circle cx="420" cy="280" r="9" fill="#d9cdec"/>
+  <circle cx="512" cy="262" r="9" fill="#d9cdec"/>
+  <circle cx="604" cy="280" r="9" fill="#d9cdec"/>
+
+  <!-- lens barrel: dominates the front -->
+  <ellipse cx="548" cy="470" rx="168" ry="158" fill="url(#metal)"/>
+  <ellipse cx="552" cy="472" rx="140" ry="132" fill="#2a1d3e"/>
+  <ellipse cx="556" cy="474" rx="118" ry="112" fill="url(#lens)"/>
+  <!-- iris + glints -->
+  <ellipse cx="566" cy="482" rx="52" ry="50" fill="#063a4c"/>
+  <ellipse cx="540" cy="440" rx="30" ry="20" fill="#ffffff" opacity="0.85"/>
+  <ellipse cx="610" cy="520" rx="12" ry="9" fill="#ffffff" opacity="0.5"/>
+
+  <!-- side pods -->
+  <ellipse cx="286" cy="470" rx="44" ry="58" fill="url(#cap)"/>
+  <ellipse cx="740" cy="452" rx="38" ry="52" fill="url(#cap)"/>
+  <!-- small warning light on top -->
+  <rect x="496" y="196" width="14" height="30" rx="7" fill="#8a7aa8"/>
+  <circle cx="503" cy="188" r="14" fill="#ff4d3d"/>
+</svg>

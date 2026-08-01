@@ -1,0 +1,54 @@
+<svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <!-- Concept card: stacked gold spike-drum hazard on a pipe post, image-to-3D input. -->
+  <defs>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#f4d878"/>
+      <stop offset="0.5" stop-color="#d9b23a"/>
+      <stop offset="1" stop-color="#8f6d14"/>
+    </linearGradient>
+    <linearGradient id="steel" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f2f5f8"/>
+      <stop offset="1" stop-color="#9fa8b2"/>
+    </linearGradient>
+    <linearGradient id="post" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#eef4f8"/>
+      <stop offset="0.5" stop-color="#c9d8e4"/>
+      <stop offset="1" stop-color="#7f95a6"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1024" height="1024" fill="#e9eaee"/>
+  <ellipse cx="512" cy="912" rx="150" ry="26" fill="#000000" opacity="0.14"/>
+
+  <!-- pipe post -->
+  <rect x="482" y="240" width="60" height="660" rx="24" fill="url(#post)"/>
+  <ellipse cx="512" cy="900" rx="86" ry="24" fill="url(#post)"/>
+
+  <!-- three spike drums -->
+  <g>
+    <!-- drum template repeated at three heights -->
+    <g transform="translate(0 0)">
+      <path d="M330 700 L400 676 L400 724 Z" fill="url(#steel)"/>
+      <path d="M694 700 L624 676 L624 724 Z" fill="url(#steel)"/>
+      <path d="M452 770 L512 830 L572 770 Z" fill="url(#steel)"/>
+      <rect x="392" y="648" width="240" height="104" rx="40" fill="url(#gold)"/>
+      <ellipse cx="512" cy="652" rx="120" ry="26" fill="#f4d878"/>
+    </g>
+    <g transform="translate(0 -170)">
+      <path d="M330 700 L400 676 L400 724 Z" fill="url(#steel)"/>
+      <path d="M694 700 L624 676 L624 724 Z" fill="url(#steel)"/>
+      <rect x="392" y="648" width="240" height="104" rx="40" fill="url(#gold)"/>
+      <ellipse cx="512" cy="652" rx="120" ry="26" fill="#f4d878"/>
+    </g>
+    <g transform="translate(0 -340)">
+      <path d="M330 700 L400 676 L400 724 Z" fill="url(#steel)"/>
+      <path d="M694 700 L624 676 L624 724 Z" fill="url(#steel)"/>
+      <rect x="392" y="648" width="240" height="104" rx="40" fill="url(#gold)"/>
+      <ellipse cx="512" cy="652" rx="120" ry="26" fill="#f4d878"/>
+    </g>
+  </g>
+
+  <!-- crown spike -->
+  <path d="M462 320 L512 210 L562 320 Z" fill="url(#gold)"/>
+  <ellipse cx="512" cy="322" rx="52" ry="14" fill="#f4d878"/>
+</svg>

@@ -1,0 +1,93 @@
+<svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <!-- Concept card: blue hedgehog hero, 3/4 front view, for image-to-3D input.
+       Fan depiction of a SEGA-owned character; non-commercial project. -->
+  <defs>
+    <radialGradient id="blue" cx="0.38" cy="0.3" r="1">
+      <stop offset="0" stop-color="#5585ef"/>
+      <stop offset="0.55" stop-color="#2f5fd0"/>
+      <stop offset="1" stop-color="#1b3a8c"/>
+    </radialGradient>
+    <radialGradient id="skin" cx="0.4" cy="0.32" r="1">
+      <stop offset="0" stop-color="#ffe2b4"/>
+      <stop offset="1" stop-color="#e0ac72"/>
+    </radialGradient>
+    <radialGradient id="white" cx="0.38" cy="0.3" r="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#cfd2dd"/>
+    </radialGradient>
+    <radialGradient id="red" cx="0.4" cy="0.3" r="1">
+      <stop offset="0" stop-color="#f25454"/>
+      <stop offset="1" stop-color="#a81d1d"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="1024" height="1024" fill="#e9eaee"/>
+  <ellipse cx="512" cy="912" rx="230" ry="34" fill="#000000" opacity="0.14"/>
+
+  <!-- back quills, swept left-down -->
+  <g fill="url(#blue)">
+    <path d="M470 250 Q300 210 208 268 Q330 330 470 350 Z"/>
+    <path d="M450 330 Q260 330 180 400 Q320 440 458 430 Z"/>
+    <path d="M440 410 Q280 460 236 540 Q360 540 462 500 Z"/>
+    <path d="M560 232 Q470 150 380 150 Q440 240 545 300 Z"/>
+  </g>
+
+  <!-- legs + shoes -->
+  <g>
+    <rect x="452" y="680" width="44" height="120" rx="22" fill="url(#blue)"/>
+    <rect x="548" y="680" width="44" height="120" rx="22" fill="url(#blue)"/>
+    <!-- left shoe -->
+    <g>
+      <ellipse cx="452" cy="856" rx="96" ry="52" fill="url(#red)"/>
+      <ellipse cx="500" cy="846" rx="46" ry="40" fill="url(#red)"/>
+      <rect x="404" y="828" width="120" height="22" rx="11" fill="url(#white)"/>
+      <path d="M356 880 Q452 918 548 880 L548 900 Q452 934 356 900 Z" fill="#e6d6ae"/>
+      <ellipse cx="462" cy="800" rx="30" ry="16" fill="url(#white)"/>
+    </g>
+    <!-- right shoe -->
+    <g>
+      <ellipse cx="596" cy="856" rx="96" ry="52" fill="url(#red)"/>
+      <ellipse cx="646" cy="846" rx="46" ry="40" fill="url(#red)"/>
+      <rect x="548" y="828" width="120" height="22" rx="11" fill="url(#white)"/>
+      <path d="M500 880 Q596 918 692 880 L692 900 Q596 934 500 900 Z" fill="#e6d6ae"/>
+      <ellipse cx="606" cy="800" rx="30" ry="16" fill="url(#white)"/>
+    </g>
+  </g>
+
+  <!-- torso -->
+  <ellipse cx="520" cy="640" rx="118" ry="112" fill="url(#blue)"/>
+  <ellipse cx="536" cy="662" rx="72" ry="70" fill="url(#skin)"/>
+
+  <!-- arms -->
+  <g>
+    <rect x="382" y="596" width="40" height="130" rx="20" transform="rotate(18 402 660)" fill="url(#blue)"/>
+    <circle cx="366" cy="726" r="42" fill="url(#white)"/>
+    <rect x="612" y="596" width="40" height="130" rx="20" transform="rotate(-18 632 660)" fill="url(#blue)"/>
+    <circle cx="668" cy="726" r="42" fill="url(#white)"/>
+  </g>
+
+  <!-- head -->
+  <ellipse cx="530" cy="380" rx="200" ry="188" fill="url(#blue)"/>
+
+  <!-- ears -->
+  <g>
+    <path d="M400 236 L360 140 L448 206 Z" fill="url(#blue)"/>
+    <path d="M404 226 L380 168 L436 208 Z" fill="url(#skin)"/>
+    <path d="M636 252 L664 156 L704 250 Z" fill="url(#blue)"/>
+    <path d="M648 244 L664 186 L690 244 Z" fill="url(#skin)"/>
+  </g>
+
+  <!-- joined eye visor -->
+  <path d="M420 330 Q460 240 552 250 Q660 258 682 342 Q690 420 636 434 Q560 448 480 430 Q414 412 420 330 Z" fill="url(#white)"/>
+  <!-- pupils -->
+  <ellipse cx="512" cy="352" rx="26" ry="46" fill="#175c2b"/>
+  <ellipse cx="640" cy="356" rx="24" ry="44" fill="#175c2b"/>
+  <ellipse cx="506" cy="336" rx="9" ry="15" fill="#ffffff"/>
+  <ellipse cx="634" cy="340" rx="8" ry="14" fill="#ffffff"/>
+
+  <!-- muzzle + nose + mouth -->
+  <ellipse cx="590" cy="474" rx="118" ry="76" fill="url(#skin)"/>
+  <ellipse cx="700" cy="428" rx="34" ry="24" fill="#141414"/>
+  <path d="M540 512 Q600 552 668 516" stroke="#8a5a33" stroke-width="9" fill="none" stroke-linecap="round"/>
+
+</svg>

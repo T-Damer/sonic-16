@@ -1,0 +1,56 @@
+<svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <!-- Concept card: flat magenta hover-skiff with under-hull grab bar, 3/4 front, image-to-3D input. -->
+  <defs>
+    <linearGradient id="hull" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#f06aa8"/>
+      <stop offset="0.45" stop-color="#d6297f"/>
+      <stop offset="1" stop-color="#7c0f47"/>
+    </linearGradient>
+    <linearGradient id="cowl" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#a4195e"/>
+      <stop offset="1" stop-color="#5c0a33"/>
+    </linearGradient>
+    <linearGradient id="metal" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#e8edf2"/>
+      <stop offset="1" stop-color="#9aa2ab"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.6">
+      <stop offset="0" stop-color="#c8fbff"/>
+      <stop offset="0.6" stop-color="#5ae8ff"/>
+      <stop offset="1" stop-color="#5ae8ff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="1024" height="1024" fill="#e9eaee"/>
+  <ellipse cx="512" cy="880" rx="300" ry="30" fill="#000000" opacity="0.10"/>
+
+  <!-- thruster wash -->
+  <ellipse cx="512" cy="620" rx="240" ry="70" fill="url(#glow)" opacity="0.8"/>
+
+  <!-- main hull: flat lozenge, nose to the right -->
+  <path d="M150 470 Q170 400 300 386 L720 372 Q850 372 900 440 Q920 470 890 500 L740 540 Q500 580 300 552 Q180 534 150 470 Z" fill="url(#hull)"/>
+  <!-- hull underside shadow -->
+  <path d="M190 500 Q450 560 730 528 L880 480 Q860 520 740 540 Q500 580 300 552 Q220 540 190 500 Z" fill="#5c0a33" opacity="0.6"/>
+
+  <!-- upper cowling -->
+  <path d="M330 392 Q360 320 470 314 Q580 312 610 372 Q480 396 330 392 Z" fill="url(#cowl)"/>
+  <!-- tail stabiliser -->
+  <path d="M240 400 L200 300 L300 380 Z" fill="url(#cowl)"/>
+
+  <!-- intake stripe along the flank -->
+  <path d="M300 470 Q550 500 830 452 L826 476 Q550 522 300 490 Z" fill="#ffa8d4" opacity="0.9"/>
+  <!-- nose glint -->
+  <ellipse cx="838" cy="424" rx="44" ry="18" fill="#ffd2e8" opacity="0.7"/>
+
+  <!-- thruster pods under hull -->
+  <ellipse cx="380" cy="566" rx="60" ry="26" fill="url(#cowl)"/>
+  <ellipse cx="640" cy="552" rx="60" ry="26" fill="url(#cowl)"/>
+  <ellipse cx="380" cy="576" rx="40" ry="12" fill="#5ae8ff"/>
+  <ellipse cx="640" cy="562" rx="40" ry="12" fill="#5ae8ff"/>
+
+  <!-- GRAB BAR: struts + horizontal bar clearly separated below the hull -->
+  <rect x="420" y="596" width="18" height="90" rx="9" fill="url(#metal)"/>
+  <rect x="586" y="588" width="18" height="98" rx="9" fill="url(#metal)"/>
+  <rect x="360" y="678" width="304" height="24" rx="12" fill="url(#metal)"/>
+  <rect x="360" y="678" width="304" height="9" rx="4" fill="#ffffff" opacity="0.7"/>
+</svg>

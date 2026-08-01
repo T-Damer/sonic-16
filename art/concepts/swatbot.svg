@@ -1,0 +1,83 @@
+<svg viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <!-- Concept card: armoured robot trooper with arm cannon, 3/4 front, image-to-3D input. -->
+  <defs>
+    <linearGradient id="steel" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#c2ccd8"/>
+      <stop offset="0.5" stop-color="#8d97a3"/>
+      <stop offset="1" stop-color="#5a636e"/>
+    </linearGradient>
+    <linearGradient id="dark" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#6a7480"/>
+      <stop offset="1" stop-color="#39404a"/>
+    </linearGradient>
+    <radialGradient id="joint" cx="0.38" cy="0.3" r="1">
+      <stop offset="0" stop-color="#9aa4b0"/>
+      <stop offset="1" stop-color="#4d5560"/>
+    </radialGradient>
+    <linearGradient id="visor" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#ff7a5e"/>
+      <stop offset="0.5" stop-color="#d83a2a"/>
+      <stop offset="1" stop-color="#8e150b"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1024" height="1024" fill="#e9eaee"/>
+  <ellipse cx="512" cy="924" rx="230" ry="32" fill="#000000" opacity="0.14"/>
+
+  <!-- legs -->
+  <g>
+    <rect x="420" y="640" width="64" height="150" rx="26" fill="url(#steel)"/>
+    <circle cx="452" cy="650" r="34" fill="url(#joint)"/>
+    <rect x="426" y="780" width="54" height="70" rx="16" fill="url(#dark)"/>
+    <path d="M400 850 L500 850 L516 902 L390 902 Z" fill="url(#dark)"/>
+
+    <rect x="548" y="640" width="64" height="150" rx="26" fill="url(#steel)"/>
+    <circle cx="580" cy="650" r="34" fill="url(#joint)"/>
+    <rect x="552" y="780" width="54" height="70" rx="16" fill="url(#dark)"/>
+    <path d="M532 850 L632 850 L648 902 L522 902 Z" fill="url(#dark)"/>
+  </g>
+
+  <!-- waist -->
+  <rect x="436" y="580" width="192" height="70" rx="24" fill="url(#dark)"/>
+
+  <!-- chest: boxy with front plate -->
+  <rect x="380" y="380" width="300" height="230" rx="30" fill="url(#steel)"/>
+  <rect x="420" y="416" width="200" height="140" rx="18" fill="url(#dark)"/>
+  <rect x="436" y="432" width="168" height="108" rx="12" fill="url(#steel)"/>
+  <!-- chest vents -->
+  <rect x="452" y="452" width="70" height="10" rx="5" fill="#39404a"/>
+  <rect x="452" y="474" width="70" height="10" rx="5" fill="#39404a"/>
+  <rect x="452" y="496" width="70" height="10" rx="5" fill="#39404a"/>
+  <!-- shoulder pads -->
+  <ellipse cx="380" cy="404" rx="66" ry="52" fill="url(#joint)"/>
+  <ellipse cx="680" cy="404" rx="66" ry="52" fill="url(#joint)"/>
+
+  <!-- left arm: manipulator -->
+  <rect x="322" y="430" width="52" height="150" rx="24" fill="url(#steel)"/>
+  <circle cx="348" cy="596" r="30" fill="url(#joint)"/>
+  <rect x="322" y="612" width="52" height="66" rx="14" fill="url(#dark)"/>
+
+  <!-- right arm: THE CANNON -->
+  <rect x="652" y="426" width="56" height="110" rx="24" fill="url(#steel)"/>
+  <circle cx="682" cy="546" r="34" fill="url(#joint)"/>
+  <!-- cannon barrel, heavier than the arm -->
+  <path d="M640 560 L740 560 L752 740 L628 740 Z" fill="url(#steel)"/>
+  <rect x="620" y="726" width="140" height="46" rx="14" fill="url(#dark)"/>
+  <ellipse cx="690" cy="778" rx="52" ry="18" fill="#1b1f26"/>
+  <!-- charge orbs travelling up the barrel -->
+  <circle cx="690" cy="700" r="15" fill="#fff6b0"/>
+  <circle cx="690" cy="654" r="12" fill="#ffec7e" opacity="0.85"/>
+  <circle cx="690" cy="612" r="9" fill="#ffe14e" opacity="0.7"/>
+
+  <!-- head: visor slab -->
+  <rect x="446" y="252" width="172" height="130" rx="26" fill="url(#steel)"/>
+  <path d="M446 300 A 86 60 0 0 1 618 300 L618 316 L446 316 Z" fill="url(#steel)"/>
+  <rect x="462" y="298" width="140" height="30" rx="12" fill="url(#visor)"/>
+  <rect x="470" y="304" width="44" height="8" rx="4" fill="#ffd2c8" opacity="0.8"/>
+  <rect x="472" y="352" width="120" height="22" rx="10" fill="url(#dark)"/>
+  <!-- neck -->
+  <rect x="500" y="378" width="64" height="26" fill="url(#dark)"/>
+  <!-- antenna -->
+  <rect x="606" y="222" width="10" height="46" rx="5" fill="url(#dark)"/>
+  <circle cx="611" cy="216" r="10" fill="#d83a2a"/>
+</svg>
