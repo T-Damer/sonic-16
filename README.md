@@ -16,12 +16,12 @@ See [`docs/GODOT_MIGRATION.md`](docs/GODOT_MIGRATION.md) for the migration decis
 2. Import [`godot/project.godot`](godot/project.godot) in the Project Manager.
 3. Press **F5**.
 
-| Action | Keyboard |
-| --- | --- |
-| Move left/right and in depth | `WASD` / arrows |
-| Jump | `Space` / `K` |
-| Reset to checkpoint | `R` |
-| Pause | `Esc` / `P` |
+| Action | Keyboard | Gamepad |
+| --- | --- | --- |
+| Move left/right and in depth | `WASD` / arrows | Left stick / D-pad |
+| Jump | `Space` / `K` | A / Cross |
+| Reset to checkpoint | `R` | — |
+| Pause | `Esc` / `P` | Start |
 
 The Web export preset is intentionally configured for the Compatibility renderer without thread support.
 
@@ -29,7 +29,7 @@ The Web export preset is intentionally configured for the Compatibility renderer
 
 - Native `CharacterBody3D` movement and collision.
 - Camera-relative movement on a real X/Z plane rather than a visual-only isometric angle.
-- Reliable jump input with coyote time, buffering and variable jump height.
+- Reliable keyboard and gamepad jump input with coyote time, buffering and variable jump height.
 - A locked orthographic camera with look-ahead and low-resolution pixel snapping.
 - Native `Area3D` pickups and hazards.
 - An `AnimatableBody3D` skiff platform and blast-door panels.
