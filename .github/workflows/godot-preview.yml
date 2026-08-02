@@ -1,4 +1,5 @@
 name: Publish Godot preview
+run-name: Godot preview from ${{ inputs.source_ref || 'agent/godot-prototype' }}
 
 on:
   workflow_dispatch:
