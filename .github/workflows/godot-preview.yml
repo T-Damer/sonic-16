@@ -1,6 +1,7 @@
 name: Publish Godot preview
 run-name: Godot preview from ${{ inputs.source_ref || 'agent/godot-prototype' }}
 
+# This launcher lives on the default branch so GitHub exposes the Run workflow button.
 on:
   workflow_dispatch:
     inputs:
