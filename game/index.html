@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Sonic 16 Godot previews</title>
+    <style>
+      html, body, iframe { width: 100%; height: 100%; margin: 0; border: 0; }
+      body { background: #081522; color: #d9f2ff; font: 16px/1.5 system-ui, sans-serif; }
+      main { box-sizing: border-box; max-width: 48rem; margin: 4rem auto; padding: 0 1.25rem; }
+      a { color: #70d8ff; }
+      code { color: #ffd154; }
+    </style>
+  </head>
+  <body>
+    <main id="status">
+      <h1>Sonic 16 Godot previews</h1>
+      <p>Loading the selected immutable build…</p>
+    </main>
+    <script>
+      const status = document.getElementById('status');
+      const parseRevision = () => {
+        const match = location.hash.match(/^#\/v1\/([0-9a-f]{7,40})\/?$/i);
+        return match ? match[1].toLowerCase() : null;
+      };
+      const openRevision = (revision) => {
+        document.title = `Sonic 16 Godot · ${revision}`;
+        const frame = document.createElement('iframe');
+        frame.src = `./v1/${revision}/index.html`;
+        frame.title = `Sonic 16 Godot build ${revision}`;
+        frame.allow = 'autoplay; fullscreen; gamepad';
+        status.replaceWith(frame);
+      };
+      const revision = parseRevision();
+      if (revision) {
+        openRevision(revision);
+      } else {
+        fetch('./latest.json', { cache: 'no-store' })
+          .then((response) => {
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            return response.json();
+          })
+          .then((latest) => {
+            location.replace(`#\/v1\/${latest.shortCommit}`);
+          })
+          .catch((error) => {
+            status.innerHTML = `<h1>Sonic 16 Godot previews</h1><p>Pass a build as <code>#/v1/&lt;commit&gt;</code>.</p><p>${error}</p>`;
+          });
+      }
+    </script>
+  </body>
+</html>

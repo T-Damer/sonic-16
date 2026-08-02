@@ -1,0 +1,51 @@
+html,
+body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background-color: #05070a;
+    color: rgba(255, 255, 255, 0.87);
+    font-family: "Arial Black", Arial, Helvetica, sans-serif;
+    /* the game owns every gesture */
+    touch-action: none;
+    overscroll-behavior: none;
+}
+
+#root,
+#app {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+/*
+ * Two stacked canvases:
+ *   z-index 0  three.js  — the 3D world      (inserted first by Renderer3D)
+ *   z-index 1  Phaser    — menus, HUD, fades (transparent)
+ */
+#game-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background-color: #05070a;
+}
+
+#game-container canvas {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100% !important;
+    height: 100% !important;
+    z-index: 1;
+}
+
+#game-container canvas#three-canvas {
+    z-index: 0;
+}
+
+canvas:focus {
+    outline: none;
+}
