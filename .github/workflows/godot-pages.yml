@@ -1,0 +1,105 @@
+name: Publish versioned Godot web build
+
+on:
+  push:
+    branches:
+      - main
+      - agent/godot-prototype
+    paths:
+      - "godot/**"
+      - ".github/workflows/godot-pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  GODOT_VERSION: 4.7.1-stable
+
+jobs:
+  publish:
+    name: Export and publish commit build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Export Godot project for Web
+        id: export
+        uses: firebelley/godot-export@v7.0.0
+        with:
+          godot_executable_download_url: https://github.com/godotengine/godot/releases/download/${{ env.GODOT_VERSION }}/Godot_v${{ env.GODOT_VERSION }}_linux.x86_64.zip
+          godot_export_templates_download_url: https://github.com/godotengine/godot/releases/download/${{ env.GODOT_VERSION }}/Godot_v${{ env.GODOT_VERSION }}_export_templates.tpz
+          relative_project_path: ./godot
+          presets_to_export: Web
+          archive_output: false
+          cache: true
+
+      - name: Prepare immutable Pages directory
+        id: version
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          short_sha="${GITHUB_SHA::12}"
+          version_path="game/v1/${short_sha}"
+          build_dir="${{ steps.export.outputs.build_directory }}/Web"
+
+          test -f "${build_dir}/index.html"
+          mkdir -p "pages-site/${version_path}"
+          cp -a "${build_dir}/." "pages-site/${version_path}/"
+
+          jq -n \
+            --arg commit "${GITHUB_SHA}" \
+            --arg shortCommit "${short_sha}" \
+            --arg ref "${GITHUB_REF_NAME}" \
+            --arg workflowRun "${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}" \
+            --arg publishedAt "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            '{commit: $commit, shortCommit: $shortCommit, ref: $ref, workflowRun: $workflowRun, publishedAt: $publishedAt}' \
+            > "pages-site/${version_path}/build.json"
+
+          touch pages-site/.nojekyll
+
+          cat > pages-site/index.html <<'HTML'
+          <!doctype html>
+          <html lang="en">
+            <head>
+              <meta charset="utf-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1">
+              <title>Sonic 16 prototype builds</title>
+            </head>
+            <body>
+              <main>
+                <h1>Sonic 16 prototype builds</h1>
+                <p>Builds are published at <code>/game/v1/&lt;commit&gt;/</code>.</p>
+              </main>
+            </body>
+          </html>
+          HTML
+
+          echo "short_sha=${short_sha}" >> "${GITHUB_OUTPUT}"
+          echo "version_path=${version_path}" >> "${GITHUB_OUTPUT}"
+
+      - name: Publish immutable build to gh-pages
+        uses: JamesIves/github-pages-deploy-action@v4.8.0
+        with:
+          branch: gh-pages
+          folder: pages-site
+          clean: false
+          force: false
+          attempt-limit: 10
+          commit-message: Publish Godot build ${{ steps.version.outputs.short_sha }}
+
+      - name: Add published URL to workflow summary
+        shell: bash
+        run: |
+          url="https://${GITHUB_REPOSITORY_OWNER,,}.github.io/${GITHUB_REPOSITORY#*/}/${{ steps.version.outputs.version_path }}/"
+          {
+            echo "## Godot web build"
+            echo
+            echo "[Open ${GITHUB_SHA::12}](${url})"
+            echo
+            echo "Immutable path: \`${{ steps.version.outputs.version_path }}/\`"
+          } >> "${GITHUB_STEP_SUMMARY}"
