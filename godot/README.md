@@ -1,66 +1,82 @@
-# Godot migration prototype
+# Godot Sonic-16 prototype
 
-This directory is a vertical slice for rebuilding the Sonic 16 concept with engine-native systems instead of maintaining a custom renderer, ECS, input layer, animation runtime, and collision solver.
+This directory contains the engine-native vertical slice. It keeps the world and characters in 3D, but uses a low-oblique orthographic camera, deliberately limited movement plane and retro shading to resemble the surviving Sonic-16 pitch footage.
 
 ## Engine
 
 - Godot **4.7.1**
 - GDScript
 - Compatibility renderer
-- Web export without thread support
+- Non-threaded Web export
+- 320×200 internal viewport, nearest-neighbour scaling
 
 ## Online builds
 
-Every pushed Godot revision on `main` or `agent/godot-prototype` is exported for Web and published as an immutable GitHub Pages build:
+The stable preview router is:
 
 ```text
-https://t-damer.github.io/sonic-16/game/v1/<12-character-commit-sha>/
+https://t-damer.github.io/sonic-16/game/#/v1/<12-character-commit-sha>
 ```
 
-The build also contains `build.json` with the full commit SHA, source branch, publication time and Actions run URL. Previous commit builds are retained rather than replaced.
-
-The repository must have GitHub Pages configured once to deploy from the `gh-pages` branch at `/ (root)`.
+Opening `/game/` selects the latest build. The physical Godot export remains under `/game/v1/<sha>/index.html`; the hash router is used as the public application URL so GitHub Pages does not interpret commit IDs as client-side routes.
 
 ## Run locally
 
 1. Install Godot 4.7.1.
-2. Import `godot/project.godot` in the Project Manager.
-3. Open `scenes/main.tscn` and press **F6**, or press **F5** to run the project.
-
-Controls:
+2. Import `godot/project.godot`.
+3. Press **F5**.
 
 | Action | Keyboard | Gamepad |
 | --- | --- | --- |
 | Move left/right and in depth | `WASD` / arrows | Left stick / D-pad |
-| Jump | `Space` / `K` | A / Cross |
-| Reset to checkpoint | `R` | — |
+| Jump / climb a ledge | `Space` / `K` | A / Cross |
+| Ring Attack | `F` / `J` | X / Square |
+| Buzzsaw in mid-air | `E` / `L` | B / Circle |
+| Spike Blast in mid-air | `Q` / `I` | Y / Triangle |
+| Wall concealment / corner peek | hold `C` near the back wall | Left shoulder |
+| Reset | `R` | — |
 | Pause | `Esc` / `P` | Start |
 
-## What this slice demonstrates
+## Current gameplay model
 
-- `CharacterBody3D.move_and_slide()` instead of the custom 2D swept-AABB solver.
-- A real X/Z movement plane with camera-relative controls.
-- `InputMap`-backed keyboard and gamepad input, including coyote time and jump buffering.
-- Orthographic fixed-angle camera.
-- Dynamic directional and spot lights with shadows.
-- `AnimatableBody3D` moving platform for the skiff sequence.
-- `Area3D` pickups and hazards.
-- A compact level route inspired by the demo: sewer entrance, machinery lanes, descent, low deck, spikes, skiff pit, arena and blast door.
-- An original pixel placeholder hero and ally instead of generated primitive character rigs.
-- A Robotropolis-inspired industrial skyline made without redistributing SEGA artwork.
+- `CharacterBody3D.move_and_slide()` provides collision and slope handling.
+- Horizontal movement is intentionally slower and heavier than a conventional Sonic controller.
+- The X/Z plane supports foreground/background lane movement from the pitch demo.
+- Jumping includes buffering, coyote time, variable height and restrained air steering.
+- Automatic ledge probing can enter a hang state; jump/up climbs and down drops.
+- Holding against the rear wall reduces movement, hides the player from distant camera detection and enables a peek-oriented camera offset.
+- Ring Attack spends one ring and throws a physical projectile.
+- Buzzsaw is a short airborne dash with a damaging hit volume.
+- Spike Blast briefly suspends the player and emits quills radially.
+- Rings are both ammunition and health.
 
-## Art replacement path
+## Enemies and level interactions
 
-The built-in blockout geometry is deliberately disposable. Import a modular CC0 pack and assemble the final environment with Godot scenes or GridMap rather than adding more geometry factories.
+- Surveillance cameras hover, scan through line of sight and launch alarm bolts.
+- Cameras require two ordinary Ring Attack hits.
+- SWATbots patrol and fire; their front plate deflects frontal ring shots.
+- Buzzsaw and Spike Blast can destroy the armoured spike barricade.
+- The level includes collectible paths, checkpoints, damaging spikes, a moving skiff, an arena and an opening rendezvous door.
 
-Suggested sources:
+## Visual direction
 
-- [Kenney Factory Kit](https://kenney.nl/assets/factory-kit) — CC0 industrial props.
-- [Quaternius Modular Sci-Fi MegaKit](https://quaternius.com/packs/ultimatemodularscifi.html) — CC0 modular sci-fi environment.
-- [KayKit Prototype Bits](https://github.com/KayKit-Game-Assets/KayKit-Prototype-Bits-1.0) — CC0 GLTF placeholders and a Godot addon.
+The current pass replaces the steep generic-isometric blockout with the lower camera angle visible in the pitch footage. The environment is an enclosed Robotropolis service corridor rather than a distant city skyline.
 
-For characters, use either an original pixel sprite sheet in `AnimatedSprite3D`, or a properly rigged GLTF from Blender and drive it with `AnimationPlayer` + `AnimationTree`. Avoid generated static meshes without clean topology, a stable skeleton, and authored locomotion clips.
+The render stack uses:
 
-## Current scope
+- original articulated low-poly 3D character and enemy models;
+- banded diffuse lighting through `retro_toon.gdshader`;
+- teal industrial panels, oxidized ochre flooring, metal conduits, vents and animated extractor fans;
+- dynamic directional, spot and point lights with shadows;
+- a screen-space palette/dither pass in `retro_post.gdshader`;
+- a foreground pipe layer to reproduce the strong framed depth of the original 320×200 screenshots.
 
-This is a migration spike, not feature parity with the old TypeScript implementation. Combat and enemy state machines should be ported only after movement, camera, collision and level composition are approved.
+No SEGA artwork, sprites or extracted models are redistributed.
+
+## Production asset replacement
+
+The present meshes establish proportions, silhouettes, materials, level metrics and interactions. Production replacements can be imported as GLTF without replacing gameplay code.
+
+Recommended environment sources remain CC0 modular kits such as Kenney Factory Kit, Quaternius Modular Sci-Fi MegaKit or KayKit Prototype Bits. Assemble them through scenes or `GridMap`/`MeshLibrary`; keep collision in dedicated nodes rather than relying on decorative mesh topology.
+
+A finished hero should use a clean skeleton with authored clips driven by `AnimationPlayer` and `AnimationTree`. The current procedural articulated rig is a prototype substitute, not the final character asset.
