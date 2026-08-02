@@ -4,41 +4,56 @@ A non-commercial fan-made technical study of the unreleased **Sonic 16 / Genesis
 
 ## Current direction
 
-The playable prototype is being migrated to **Godot 4.7.1**. The new vertical slice lives in [`godot/`](godot/) and uses engine-native systems instead of maintaining a custom renderer, ECS, input layer, animation runtime and collision solver.
+The active prototype is built in **Godot 4.7.1** under [`godot/`](godot/). The earlier Phaser/Three/Solid implementation remains in [`src/`](src/) as a reference, but it is no longer the gameplay foundation.
 
-The earlier Phaser/Three/Solid implementation remains in [`src/`](src/) as a reference while movement, camera, collision, level composition and the visual direction are evaluated.
+The current Godot pass is based on the surviving pitch footage rather than on conventional high-speed Sonic physics: a slower, more deliberate character, a widened foreground/background movement lane, large SatAM-like silhouettes, wall concealment, ledge interaction and combat abilities built around rings and quills.
 
-See [`docs/GODOT_MIGRATION.md`](docs/GODOT_MIGRATION.md) for the migration decision and porting order.
+**[Open the latest Godot Web preview](https://t-damer.github.io/sonic-16/game/)**
 
-## Run the Godot prototype
+## Controls
+
+| Action | Keyboard | Gamepad |
+| --- | --- | --- |
+| Move left/right and in depth | `WASD` / arrows | Left stick / D-pad |
+| Jump / climb a ledge | `Space` / `K` | A / Cross |
+| Ring Attack | `F` / `J` | X / Square |
+| Buzzsaw while airborne | `E` / `L` | B / Circle |
+| Spike Blast while airborne | `Q` / `I` | Y / Triangle |
+| Hold against the back wall | `C` | Left shoulder |
+| Reset to checkpoint | `R` | — |
+| Pause | `Esc` / `P` | Start |
+
+Rings function as both health and ammunition. Ring Attack consumes one ring; taking damage drops several rings. Surveillance cameras take two ring hits, while a SWATbot can deflect a frontal ring shot. Buzzsaw and Spike Blast can break the armoured spike barricade.
+
+## What is implemented in the Godot slice
+
+- Native `CharacterBody3D`, `StaticBody3D`, `AnimatableBody3D` and `Area3D` gameplay instead of the custom browser physics stack.
+- Slower acceleration, shorter jumps and limited air steering closer to the pitch demo.
+- Real movement in depth, wall concealment/peek camera bias and automatic ledge grabbing.
+- Ring Attack, Buzzsaw and radial Spike Blast.
+- Original articulated low-poly 3D hero, surveillance-camera and SWATbot models.
+- Camera enemies that scan and shoot; patrolling armoured SWATbots with directional defence.
+- A moving skiff, checkpoints, collectible ring/ammunition routes, hazards and an opening blast door.
+- A low-oblique orthographic camera modeled after the 320×200 pitch framing rather than a steep modern isometric camera.
+- Detailed Robotropolis corridor geometry with machinery panels, vents, fans, conduits, hazard strips and layered foreground piping.
+- Banded 3D materials, dynamic lights and shadows, palette quantization, dithering and subtle scanlines.
+- Versioned Web exports through `/game/#/v1/<commit>` while retaining prior builds.
+
+## Run locally
 
 1. Install Godot 4.7.1.
 2. Import [`godot/project.godot`](godot/project.godot) in the Project Manager.
 3. Press **F5**.
 
-| Action | Keyboard | Gamepad |
-| --- | --- | --- |
-| Move left/right and in depth | `WASD` / arrows | Left stick / D-pad |
-| Jump | `Space` / `K` | A / Cross |
-| Reset to checkpoint | `R` | — |
-| Pause | `Esc` / `P` | Start |
+The Web preset uses the Compatibility renderer without thread support.
 
-The Web export preset is intentionally configured for the Compatibility renderer without thread support.
+## Art pipeline
 
-## What the migration slice contains
+The current meshes and materials are original prototype assets assembled with Godot-native geometry, so the game stays fully three-dimensional and dynamically lit. They are no longer flat blockout cubes, but they are still replaceable production placeholders.
 
-- Native `CharacterBody3D` movement and collision.
-- Camera-relative movement on a real X/Z plane rather than a visual-only isometric angle.
-- Reliable keyboard and gamepad jump input with coyote time, buffering and variable jump height.
-- A locked orthographic camera with look-ahead and low-resolution pixel snapping.
-- Native `Area3D` pickups and hazards.
-- An `AnimatableBody3D` skiff platform and blast-door panels.
-- Dynamic directional, fill and spot lighting with shadows and fog.
-- A compact route inspired by the reference demo: sewer entrance, machinery lanes, descent, low deck, spikes, skiff crossing, arena and rendezvous door.
-- An original Robotropolis-inspired industrial skyline.
-- Original pixel placeholder characters rendered through `AnimatedSprite3D`.
+The next asset pass should import a modular CC0 industrial GLTF kit through Godot scenes or `GridMap`/`MeshLibrary`, while retaining the current collision, interaction and shader layer. A finished character should use a clean reusable skeleton and authored clips through `AnimationPlayer` and `AnimationTree`; the present articulated model establishes proportions and state readability without redistributing SEGA artwork.
 
-This is a foundation prototype, not feature parity with the earlier implementation. Combat, Ring Attack, Buzzsaw, Spike Blast, enemy behavior and the final cutscene should be ported only after the movement and level direction are accepted.
+See [`docs/GODOT_MIGRATION.md`](docs/GODOT_MIGRATION.md) for the architectural migration notes.
 
 ## Legacy browser prototype
 
@@ -49,12 +64,4 @@ npm run dev
 
 Then open <http://localhost:8080>.
 
-The legacy implementation uses Phaser 3, Three.js, SolidJS, a custom ECS and a custom two-dimensional swept-AABB collision layer. It contains more gameplay experiments, but its basic engine responsibilities are no longer the intended foundation.
-
-## Art pipeline
-
-The current Godot environment is a disposable blockout. The next art pass should use a modular CC0 GLTF environment pack assembled through scenes or `GridMap`/`MeshLibrary`, rather than adding more procedural geometry factories.
-
-Characters should remain original pixel art during early prototyping, or move to a properly rigged GLTF model with clean topology and authored animation clips. Imported character animation belongs in Godot's `AnimationPlayer` and `AnimationTree`.
-
-> **Legal note:** Sonic the Hedgehog, Sally Acorn, SWATbots, Badniks, rings and related marks are owned by SEGA. This repository does not redistribute SEGA game assets; the placeholder art and environment are original to this technical study.
+> **Legal note:** Sonic the Hedgehog, Sally Acorn, SWATbots, Badniks, rings and related marks are owned by SEGA. This repository does not redistribute SEGA game assets; its models, shaders and environment assets are original to this technical study.
