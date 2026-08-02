@@ -7,6 +7,12 @@ on:
       - agent/godot-prototype
     paths:
       - "godot/**"
+      - "src/**"
+      - "public/**"
+      - "index.html"
+      - "package.json"
+      - "package-lock.json"
+      - "vite/**"
       - ".github/workflows/godot-validate.yml"
   pull_request:
     paths:
@@ -18,7 +24,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: godot-preview-${{ github.event.pull_request.head.sha || github.sha }}
+  group: sonic-16-pages
   cancel-in-progress: false
 
 env:
@@ -52,22 +58,45 @@ jobs:
       - name: Boot main scene
         run: ./godot-bin --headless --path godot --quit-after 5
 
-  publish:
-    name: Publish immutable Web build
+  build-pages:
+    name: Build immutable Web preview
     needs: validate
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     permissions:
       contents: write
+      pages: write
 
     steps:
       - name: Check out source revision
         uses: actions/checkout@v6
         with:
           ref: ${{ env.BUILD_SHA }}
+          path: source
+
+      - name: Check out retained Pages files
+        uses: actions/checkout@v6
+        with:
+          ref: gh-pages
+          path: pages-site
+          fetch-depth: 1
+
+      - name: Build the existing browser prototype at the site root
+        working-directory: source
+        run: |
+          npm ci
+          npm run build-nolog
+
+          # Keep immutable Godot builds, but replace the root browser application.
+          find ../pages-site -mindepth 1 -maxdepth 1 \
+            ! -name .git \
+            ! -name game \
+            -exec rm -rf {} +
+          cp -a dist/. ../pages-site/
 
       - name: Download Godot and Web export templates
+        working-directory: source
         run: |
           set -euo pipefail
 
@@ -86,11 +115,7 @@ jobs:
           mkdir -p "$template_dir"
           unzip -q -o -j export-templates.tpz -d "$template_dir"
 
-          echo "Godot executable: $(./godot-bin --version)"
-          echo "Installed Web templates:"
-          find "$template_dir" -maxdepth 1 -type f -name 'web_*' -printf '%f %s bytes\n' | sort
-
-      - name: Export versioned Web build
+      - name: Export versioned Godot Web build
         id: version
         shell: bash
         run: |
@@ -102,8 +127,8 @@ jobs:
           output_dir="${pages_root}/${version_path}"
 
           mkdir -p "$output_dir"
-          ./godot-bin --headless --verbose --path godot --editor --quit-after 3
-          ./godot-bin --headless --verbose --path godot --export-release Web "$output_dir/index.html"
+          source/godot-bin --headless --path source/godot --editor --quit-after 3
+          source/godot-bin --headless --path source/godot --export-release Web "$output_dir/index.html"
 
           test -f "$output_dir/index.html"
           test -f "$output_dir/index.wasm"
@@ -118,35 +143,95 @@ jobs:
             '{commit: $commit, shortCommit: $shortCommit, ref: $ref, workflowRun: $workflowRun, publishedAt: $publishedAt}' \
             > "$output_dir/build.json"
 
-          touch "$pages_root/.nojekyll"
+          mkdir -p "$pages_root/game"
+          jq -n \
+            --arg commit "$BUILD_SHA" \
+            --arg shortCommit "$short_sha" \
+            --arg path "$version_path" \
+            '{commit: $commit, shortCommit: $shortCommit, path: $path}' \
+            > "$pages_root/game/latest.json"
 
-          cat > "$pages_root/index.html" <<HTML
+          cat > "$pages_root/game/index.html" <<'HTML'
           <!doctype html>
           <html lang="en">
             <head>
               <meta charset="utf-8">
               <meta name="viewport" content="width=device-width, initial-scale=1">
-              <title>Sonic 16 Godot builds</title>
+              <title>Sonic 16 Godot previews</title>
               <style>
-                body { max-width: 48rem; margin: 4rem auto; padding: 0 1.25rem; font: 16px/1.55 system-ui, sans-serif; background: #081522; color: #d9f2ff; }
+                html, body, iframe { width: 100%; height: 100%; margin: 0; border: 0; }
+                body { background: #081522; color: #d9f2ff; font: 16px/1.5 system-ui, sans-serif; }
+                main { box-sizing: border-box; max-width: 48rem; margin: 4rem auto; padding: 0 1.25rem; }
                 a { color: #70d8ff; }
                 code { color: #ffd154; }
               </style>
             </head>
             <body>
-              <main>
-                <h1>Sonic 16 Godot builds</h1>
-                <p>Current published revision: <a href="./${version_path}/"><code>${short_sha}</code></a>.</p>
-                <p>Immutable builds use <code>/game/v1/&lt;commit&gt;/</code>.</p>
+              <main id="status">
+                <h1>Sonic 16 Godot previews</h1>
+                <p>Loading the selected immutable build…</p>
               </main>
+              <script>
+                const status = document.getElementById('status');
+                const parseRevision = () => {
+                  const match = location.hash.match(/^#\/v1\/([0-9a-f]{7,40})\/?$/i);
+                  return match ? match[1].toLowerCase() : null;
+                };
+                const openRevision = (revision) => {
+                  document.title = `Sonic 16 Godot · ${revision}`;
+                  const frame = document.createElement('iframe');
+                  frame.src = `./v1/${revision}/index.html`;
+                  frame.title = `Sonic 16 Godot build ${revision}`;
+                  frame.allow = 'autoplay; fullscreen; gamepad';
+                  status.replaceWith(frame);
+                };
+                const revision = parseRevision();
+                if (revision) {
+                  openRevision(revision);
+                } else {
+                  fetch('./latest.json', { cache: 'no-store' })
+                    .then((response) => {
+                      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                      return response.json();
+                    })
+                    .then((latest) => {
+                      location.replace(`#\/v1\/${latest.shortCommit}`);
+                    })
+                    .catch((error) => {
+                      status.innerHTML = `<h1>Sonic 16 Godot previews</h1><p>Pass a build as <code>#/v1/&lt;commit&gt;</code>.</p><p>${error}</p>`;
+                    });
+                }
+              </script>
             </body>
           </html>
           HTML
 
+          # GitHub Pages uses this fallback only when a physical file was not found.
+          # Convert old directory-style preview URLs to the hash-router URL.
+          cat > "$pages_root/404.html" <<'HTML'
+          <!doctype html>
+          <html lang="en">
+            <head><meta charset="utf-8"><title>Redirecting preview…</title></head>
+            <body>
+              <script>
+                const match = location.pathname.match(/^(.*\/game)\/v1\/([0-9a-f]{7,40})(?:\/.*)?$/i);
+                if (match) {
+                  location.replace(`${match[1]}/#/v1/${match[2].toLowerCase()}`);
+                } else {
+                  document.body.textContent = 'Not found';
+                }
+              </script>
+            </body>
+          </html>
+          HTML
+
+          touch "$pages_root/.nojekyll"
+
           echo "short_sha=$short_sha" >> "$GITHUB_OUTPUT"
           echo "version_path=$version_path" >> "$GITHUB_OUTPUT"
+          echo "hash_path=game/#/v1/$short_sha" >> "$GITHUB_OUTPUT"
 
-      - name: Upload Web build as workflow artifact
+      - name: Upload downloadable Godot build
         uses: actions/upload-artifact@v4
         with:
           name: sonic-16-godot-${{ steps.version.outputs.short_sha }}
@@ -154,24 +239,54 @@ jobs:
           if-no-files-found: error
           retention-days: 30
 
-      - name: Publish immutable build to gh-pages
-        uses: JamesIves/github-pages-deploy-action@v4.8.0
-        with:
-          branch: gh-pages
-          folder: pages-site
-          clean: false
-          force: false
-          attempt-limit: 10
-          commit-message: Publish Godot build ${{ steps.version.outputs.short_sha }}
+      - name: Retain immutable builds in gh-pages
+        working-directory: pages-site
+        run: |
+          set -euo pipefail
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No Pages branch changes to commit."
+          else
+            git commit -m "Publish Godot build ${{ steps.version.outputs.short_sha }}"
+            git push origin HEAD:gh-pages
+          fi
 
-      - name: Add published URL to workflow summary
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload complete Pages site
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: pages-site
+          include-hidden-files: true
+
+      - name: Add preview paths to workflow summary
         shell: bash
         run: |
-          url="https://${GITHUB_REPOSITORY_OWNER,,}.github.io/${GITHUB_REPOSITORY#*/}/${{ steps.version.outputs.version_path }}/"
+          base="https://${GITHUB_REPOSITORY_OWNER,,}.github.io/${GITHUB_REPOSITORY#*/}"
           {
-            echo "## Godot Web build"
+            echo "## Godot Web preview"
             echo
-            echo "[Open ${BUILD_SHA:0:12}](${url})"
+            echo "Hash route: ${base}/${{ steps.version.outputs.hash_path }}"
             echo
-            echo "Immutable path: \`${{ steps.version.outputs.version_path }}/\`"
+            echo "Physical file: ${base}/${{ steps.version.outputs.version_path }}/index.html"
           } >> "$GITHUB_STEP_SUMMARY"
+
+  deploy-pages:
+    name: Deploy GitHub Pages
+    needs: build-pages
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy Pages artifact
+        id: deployment
+        uses: actions/deploy-pages@v4
