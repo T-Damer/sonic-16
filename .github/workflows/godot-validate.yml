@@ -1,7 +1,10 @@
-name: Validate Godot prototype
+name: Validate and publish Godot prototype
 
 on:
   push:
+    branches:
+      - main
+      - agent/godot-prototype
     paths:
       - "godot/**"
       - ".github/workflows/godot-validate.yml"
@@ -9,23 +12,38 @@ on:
     paths:
       - "godot/**"
       - ".github/workflows/godot-validate.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: godot-preview-${{ github.event.pull_request.head.sha || github.sha }}
+  cancel-in-progress: false
+
+env:
+  GODOT_VERSION: 4.7.1-stable
+  BUILD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
 
 jobs:
   validate:
+    name: Validate project
     runs-on: ubuntu-latest
     timeout-minutes: 10
 
     steps:
-      - name: Check out repository
-        uses: actions/checkout@v4
+      - name: Check out source revision
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ env.BUILD_SHA }}
 
-      - name: Download Godot 4.7.1
+      - name: Download Godot
         run: |
           curl -L --fail --retry 3 \
             -o godot.zip \
-            https://github.com/godotengine/godot/releases/download/4.7.1-stable/Godot_v4.7.1-stable_linux.x86_64.zip
+            "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_linux.x86_64.zip"
           unzip -q godot.zip
-          mv Godot_v4.7.1-stable_linux.x86_64 godot-bin
+          mv "Godot_v${GODOT_VERSION}_linux.x86_64" godot-bin
           chmod +x godot-bin
 
       - name: Import project and validate scripts
@@ -33,3 +51,125 @@ jobs:
 
       - name: Boot main scene
         run: ./godot-bin --headless --path godot --quit-after 5
+
+  publish:
+    name: Publish immutable Web build
+    needs: validate
+    if: >-
+      github.event_name == 'push' ||
+      (github.event_name == 'pull_request' &&
+       github.event.pull_request.head.repo.full_name == github.repository &&
+       github.event.pull_request.head.ref == 'agent/godot-prototype')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: write
+
+    steps:
+      - name: Check out source revision
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ env.BUILD_SHA }}
+
+      - name: Download Godot and Web export templates
+        run: |
+          set -euo pipefail
+
+          curl -L --fail --retry 3 \
+            -o godot.zip \
+            "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_linux.x86_64.zip"
+          unzip -q godot.zip
+          mv "Godot_v${GODOT_VERSION}_linux.x86_64" godot-bin
+          chmod +x godot-bin
+
+          curl -L --fail --retry 3 \
+            -o export-templates.tpz \
+            "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_export_templates.tpz"
+
+          template_dir="$HOME/.local/share/godot/export_templates/4.7.1.stable"
+          mkdir -p "$template_dir"
+          unzip -q -o -j export-templates.tpz -d "$template_dir"
+
+      - name: Export versioned Web build
+        id: version
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          short_sha="${BUILD_SHA:0:12}"
+          version_path="game/v1/${short_sha}"
+          output_dir="pages-site/${version_path}"
+
+          mkdir -p "$output_dir"
+          ./godot-bin --headless --path godot --export-release Web "$output_dir/index.html"
+
+          test -f "$output_dir/index.html"
+          test -f "$output_dir/index.wasm"
+          test -f "$output_dir/index.pck"
+
+          jq -n \
+            --arg commit "$BUILD_SHA" \
+            --arg shortCommit "$short_sha" \
+            --arg ref "$GITHUB_HEAD_REF${GITHUB_HEAD_REF:+ (pull request)}" \
+            --arg workflowRun "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" \
+            --arg publishedAt "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            '{commit: $commit, shortCommit: $shortCommit, ref: $ref, workflowRun: $workflowRun, publishedAt: $publishedAt}' \
+            > "$output_dir/build.json"
+
+          touch pages-site/.nojekyll
+
+          cat > pages-site/index.html <<HTML
+          <!doctype html>
+          <html lang="en">
+            <head>
+              <meta charset="utf-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1">
+              <title>Sonic 16 Godot builds</title>
+              <style>
+                body { max-width: 48rem; margin: 4rem auto; padding: 0 1.25rem; font: 16px/1.55 system-ui, sans-serif; background: #081522; color: #d9f2ff; }
+                a { color: #70d8ff; }
+                code { color: #ffd154; }
+              </style>
+            </head>
+            <body>
+              <main>
+                <h1>Sonic 16 Godot builds</h1>
+                <p>Current published revision: <a href="./${version_path}/"><code>${short_sha}</code></a>.</p>
+                <p>Immutable builds use <code>/game/v1/&lt;commit&gt;/</code>.</p>
+              </main>
+            </body>
+          </html>
+          HTML
+
+          echo "short_sha=$short_sha" >> "$GITHUB_OUTPUT"
+          echo "version_path=$version_path" >> "$GITHUB_OUTPUT"
+
+      - name: Upload Web build as workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sonic-16-godot-${{ steps.version.outputs.short_sha }}
+          path: pages-site/${{ steps.version.outputs.version_path }}
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Publish immutable build to gh-pages
+        uses: JamesIves/github-pages-deploy-action@v4.8.0
+        with:
+          branch: gh-pages
+          folder: pages-site
+          clean: false
+          force: false
+          attempt-limit: 10
+          commit-message: Publish Godot build ${{ steps.version.outputs.short_sha }}
+
+      - name: Add published URL to workflow summary
+        shell: bash
+        run: |
+          url="https://${GITHUB_REPOSITORY_OWNER,,}.github.io/${GITHUB_REPOSITORY#*/}/${{ steps.version.outputs.version_path }}/"
+          {
+            echo "## Godot Web build"
+            echo
+            echo "[Open ${BUILD_SHA:0:12}](${url})"
+            echo
+            echo "Immutable path: \`${{ steps.version.outputs.version_path }}/\`"
+          } >> "$GITHUB_STEP_SUMMARY"
