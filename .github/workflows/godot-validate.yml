@@ -55,11 +55,7 @@ jobs:
   publish:
     name: Publish immutable Web build
     needs: validate
-    if: >-
-      github.event_name == 'push' ||
-      (github.event_name == 'pull_request' &&
-       github.event.pull_request.head.repo.full_name == github.repository &&
-       github.event.pull_request.head.ref == 'agent/godot-prototype')
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
@@ -102,7 +98,8 @@ jobs:
 
           short_sha="${BUILD_SHA:0:12}"
           version_path="game/v1/${short_sha}"
-          output_dir="pages-site/${version_path}"
+          pages_root="${GITHUB_WORKSPACE}/pages-site"
+          output_dir="${pages_root}/${version_path}"
 
           mkdir -p "$output_dir"
           ./godot-bin --headless --verbose --path godot --editor --quit-after 3
@@ -121,9 +118,9 @@ jobs:
             '{commit: $commit, shortCommit: $shortCommit, ref: $ref, workflowRun: $workflowRun, publishedAt: $publishedAt}' \
             > "$output_dir/build.json"
 
-          touch pages-site/.nojekyll
+          touch "$pages_root/.nojekyll"
 
-          cat > pages-site/index.html <<HTML
+          cat > "$pages_root/index.html" <<HTML
           <!doctype html>
           <html lang="en">
             <head>
