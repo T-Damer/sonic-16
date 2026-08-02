@@ -4,11 +4,8 @@
   <body>
     <script>
       const match = location.pathname.match(/^(.*\/game)\/v1\/([0-9a-f]{7,40})(?:\/.*)?$/i);
-      if (match) {
-        location.replace(`${match[1]}/#/v1/${match[2].toLowerCase()}`);
-      } else {
-        document.body.textContent = 'Not found';
-      }
+      if (match) location.replace(`${match[1]}/#/v1/${match[2].toLowerCase()}`);
+      else document.body.textContent = 'Not found';
     </script>
   </body>
 </html>
