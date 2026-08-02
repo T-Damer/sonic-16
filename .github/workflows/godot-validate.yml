@@ -1,0 +1,307 @@
+name: Validate and publish Godot prototype
+
+on:
+  push:
+    branches:
+      - main
+      - agent/godot-prototype
+    paths:
+      - "godot/**"
+      - "src/**"
+      - "public/**"
+      - "index.html"
+      - "package.json"
+      - "package-lock.json"
+      - "vite/**"
+      - ".github/workflows/godot-validate.yml"
+  pull_request:
+    paths:
+      - "godot/**"
+      - ".github/workflows/godot-validate.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sonic-16-pages
+  cancel-in-progress: false
+
+env:
+  GODOT_VERSION: 4.7.1-stable
+  BUILD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+
+jobs:
+  validate:
+    name: Validate project
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out source revision
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ env.BUILD_SHA }}
+
+      - name: Download Godot
+        run: |
+          curl -L --fail --retry 3 \
+            -o godot.zip \
+            "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_linux.x86_64.zip"
+          unzip -q godot.zip
+          mv "Godot_v${GODOT_VERSION}_linux.x86_64" godot-bin
+          chmod +x godot-bin
+
+      - name: Import project and validate scripts
+        run: ./godot-bin --headless --path godot --editor --quit-after 3
+
+      - name: Boot main scene
+        run: ./godot-bin --headless --path godot --quit-after 5
+
+  build-pages:
+    name: Build immutable Web preview
+    needs: validate
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: write
+      pages: write
+    outputs:
+      pages_configured: ${{ steps.pages.outcome }}
+      short_sha: ${{ steps.version.outputs.short_sha }}
+      hash_path: ${{ steps.version.outputs.hash_path }}
+
+    steps:
+      - name: Check out source revision
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ env.BUILD_SHA }}
+          path: source
+
+      - name: Check out retained Pages files
+        uses: actions/checkout@v6
+        with:
+          ref: gh-pages
+          path: pages-site
+          fetch-depth: 1
+
+      - name: Build the existing browser prototype at the site root
+        working-directory: source
+        run: |
+          npm ci
+          npm run build-nolog
+
+          # Keep immutable Godot builds, but replace the root browser application.
+          find ../pages-site -mindepth 1 -maxdepth 1 \
+            ! -name .git \
+            ! -name game \
+            -exec rm -rf {} +
+          cp -a dist/. ../pages-site/
+
+      - name: Download Godot and Web export templates
+        working-directory: source
+        run: |
+          set -euo pipefail
+
+          curl -L --fail --retry 3 \
+            -o godot.zip \
+            "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_linux.x86_64.zip"
+          unzip -q godot.zip
+          mv "Godot_v${GODOT_VERSION}_linux.x86_64" godot-bin
+          chmod +x godot-bin
+
+          curl -L --fail --retry 3 \
+            -o export-templates.tpz \
+            "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_export_templates.tpz"
+
+          template_dir="$HOME/.local/share/godot/export_templates/4.7.1.stable"
+          mkdir -p "$template_dir"
+          unzip -q -o -j export-templates.tpz -d "$template_dir"
+
+      - name: Export versioned Godot Web build
+        id: version
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          short_sha="${BUILD_SHA:0:12}"
+          version_path="game/v1/${short_sha}"
+          pages_root="${GITHUB_WORKSPACE}/pages-site"
+          output_dir="${pages_root}/${version_path}"
+
+          mkdir -p "$output_dir"
+          source/godot-bin --headless --path source/godot --editor --quit-after 3
+          source/godot-bin --headless --path source/godot --export-release Web "$output_dir/index.html"
+
+          test -f "$output_dir/index.html"
+          test -f "$output_dir/index.wasm"
+          test -f "$output_dir/index.pck"
+
+          jq -n \
+            --arg commit "$BUILD_SHA" \
+            --arg shortCommit "$short_sha" \
+            --arg ref "${GITHUB_HEAD_REF:-$GITHUB_REF_NAME}" \
+            --arg workflowRun "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" \
+            --arg publishedAt "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            '{commit: $commit, shortCommit: $shortCommit, ref: $ref, workflowRun: $workflowRun, publishedAt: $publishedAt}' \
+            > "$output_dir/build.json"
+
+          mkdir -p "$pages_root/game"
+          jq -n \
+            --arg commit "$BUILD_SHA" \
+            --arg shortCommit "$short_sha" \
+            --arg path "$version_path" \
+            '{commit: $commit, shortCommit: $shortCommit, path: $path}' \
+            > "$pages_root/game/latest.json"
+
+          cat > "$pages_root/game/index.html" <<'HTML'
+          <!doctype html>
+          <html lang="en">
+            <head>
+              <meta charset="utf-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1">
+              <title>Sonic 16 Godot previews</title>
+              <style>
+                html, body, iframe { width: 100%; height: 100%; margin: 0; border: 0; }
+                body { background: #081522; color: #d9f2ff; font: 16px/1.5 system-ui, sans-serif; }
+                main { box-sizing: border-box; max-width: 48rem; margin: 4rem auto; padding: 0 1.25rem; }
+                a { color: #70d8ff; }
+                code { color: #ffd154; }
+              </style>
+            </head>
+            <body>
+              <main id="status">
+                <h1>Sonic 16 Godot previews</h1>
+                <p>Loading the selected immutable build…</p>
+              </main>
+              <script>
+                const status = document.getElementById('status');
+                const parseRevision = () => {
+                  const match = location.hash.match(/^#\/v1\/([0-9a-f]{7,40})\/?$/i);
+                  return match ? match[1].toLowerCase() : null;
+                };
+                const openRevision = (revision) => {
+                  document.title = `Sonic 16 Godot · ${revision}`;
+                  const frame = document.createElement('iframe');
+                  frame.src = `./v1/${revision}/index.html`;
+                  frame.title = `Sonic 16 Godot build ${revision}`;
+                  frame.allow = 'autoplay; fullscreen; gamepad';
+                  status.replaceWith(frame);
+                };
+                const revision = parseRevision();
+                if (revision) {
+                  openRevision(revision);
+                } else {
+                  fetch('./latest.json', { cache: 'no-store' })
+                    .then((response) => {
+                      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                      return response.json();
+                    })
+                    .then((latest) => {
+                      location.replace(`#\/v1\/${latest.shortCommit}`);
+                    })
+                    .catch((error) => {
+                      status.innerHTML = `<h1>Sonic 16 Godot previews</h1><p>Pass a build as <code>#/v1/&lt;commit&gt;</code>.</p><p>${error}</p>`;
+                    });
+                }
+              </script>
+            </body>
+          </html>
+          HTML
+
+          # Convert the old directory-style preview URL to the hash-router URL.
+          cat > "$pages_root/404.html" <<'HTML'
+          <!doctype html>
+          <html lang="en">
+            <head><meta charset="utf-8"><title>Redirecting preview…</title></head>
+            <body>
+              <script>
+                const match = location.pathname.match(/^(.*\/game)\/v1\/([0-9a-f]{7,40})(?:\/.*)?$/i);
+                if (match) {
+                  location.replace(`${match[1]}/#/v1/${match[2].toLowerCase()}`);
+                } else {
+                  document.body.textContent = 'Not found';
+                }
+              </script>
+            </body>
+          </html>
+          HTML
+
+          touch "$pages_root/.nojekyll"
+
+          echo "short_sha=$short_sha" >> "$GITHUB_OUTPUT"
+          echo "version_path=$version_path" >> "$GITHUB_OUTPUT"
+          echo "hash_path=game/#/v1/$short_sha" >> "$GITHUB_OUTPUT"
+
+      - name: Upload downloadable Godot build
+        uses: actions/upload-artifact@v4
+        with:
+          name: sonic-16-godot-${{ steps.version.outputs.short_sha }}
+          path: pages-site/${{ steps.version.outputs.version_path }}
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Retain immutable builds in gh-pages
+        working-directory: pages-site
+        run: |
+          set -euo pipefail
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No Pages branch changes to commit."
+          else
+            git commit -m "Publish Godot build ${{ steps.version.outputs.short_sha }}"
+            git push origin HEAD:gh-pages
+          fi
+
+      - name: Upload complete Pages site
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: pages-site
+          include-hidden-files: true
+
+      - name: Detect whether GitHub Pages is enabled
+        id: pages
+        continue-on-error: true
+        uses: actions/configure-pages@v5
+
+      - name: Add preview paths to workflow summary
+        if: always()
+        shell: bash
+        env:
+          PAGES_OUTCOME: ${{ steps.pages.outcome }}
+        run: |
+          base="https://${GITHUB_REPOSITORY_OWNER,,}.github.io/${GITHUB_REPOSITORY#*/}"
+          {
+            echo "## Godot Web preview"
+            echo
+            echo "Hash route: ${base}/${{ steps.version.outputs.hash_path }}"
+            echo
+            echo "Physical file: ${base}/${{ steps.version.outputs.version_path }}/index.html"
+            echo
+            if [ "$PAGES_OUTCOME" = "success" ]; then
+              echo "GitHub Pages is enabled; the deployment job will publish this artifact."
+            else
+              echo "GitHub Pages is not enabled yet. In Settings → Pages, select GitHub Actions as the source, then rerun this workflow."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  deploy-pages:
+    name: Deploy GitHub Pages
+    needs: build-pages
+    if: needs.build-pages.outputs.pages_configured == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy Pages artifact
+        id: deployment
+        uses: actions/deploy-pages@v4

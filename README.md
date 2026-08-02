@@ -1,155 +1,67 @@
 # SONIC-16
 
-A fan-made reconstruction of the unreleased **"Sonic 16" / Genesis PM Concept** prototype.
+A non-commercial fan-made technical study of the unreleased **Sonic 16 / Genesis PM Concept**.
 
-The world is modelled and lit in **real 3D** (three.js), but the camera is **locked to a fixed
-near-isometric angle** and gameplay is constrained to a 2D plane — reproducing the
-pre-rendered "diorama" look of the original concept footage with the responsive feel of a
-16-bit platformer.
+## Current direction
 
-> **Legal note.** Sonic the Hedgehog, Sally Acorn, SWATbots, Badniks, rings and all related
-> marks are **owned by SEGA**. This is a non-commercial, local, fan-made technical study.
-> **No SEGA assets are used or redistributed** — every mesh, texture and animation in this
-> repository is generated procedurally from code at runtime.
+The active prototype is built in **Godot 4.7.1** under [`godot/`](godot/). The earlier Phaser/Three/Solid implementation remains in [`src/`](src/) as a reference, but it is no longer the gameplay foundation.
 
----
+The current Godot pass is based on the surviving pitch footage rather than on conventional high-speed Sonic physics: a slower, more deliberate character, a widened foreground/background movement lane, large SatAM-like silhouettes, wall concealment, ledge interaction and combat abilities built around rings and quills.
 
-## Running it
+**[Open the latest Godot Web preview](https://t-damer.github.io/sonic-16/game/)**
+
+## Controls
+
+| Action | Keyboard | Gamepad |
+| --- | --- | --- |
+| Move left/right and in depth | `WASD` / arrows | Left stick / D-pad |
+| Jump / climb a ledge | `Space` / `K` | A / Cross |
+| Ring Attack | `F` / `J` | X / Square |
+| Buzzsaw while airborne | `E` / `L` | B / Circle |
+| Spike Blast while airborne | `Q` / `I` | Y / Triangle |
+| Hold against the back wall | `C` | Left shoulder |
+| Reset to checkpoint | `R` | — |
+| Pause | `Esc` / `P` | Start |
+
+Rings function as both health and ammunition. Ring Attack consumes one ring; taking damage drops several rings. Surveillance cameras take two ring hits, while a SWATbot can deflect a frontal ring shot. Buzzsaw and Spike Blast can break the armoured spike barricade.
+
+## What is implemented in the Godot slice
+
+- Native `CharacterBody3D`, `StaticBody3D`, `AnimatableBody3D` and `Area3D` gameplay instead of the custom browser physics stack.
+- Slower acceleration, shorter jumps and limited air steering closer to the pitch demo.
+- Real movement in depth, wall concealment/peek camera bias and automatic ledge grabbing.
+- Ring Attack, Buzzsaw and radial Spike Blast.
+- Original articulated low-poly 3D hero, surveillance-camera and SWATbot models.
+- Camera enemies that scan and shoot; patrolling armoured SWATbots with directional defence.
+- A moving skiff, checkpoints, collectible ring/ammunition routes, hazards and an opening blast door.
+- A low-oblique orthographic camera modeled after the 320×200 pitch framing rather than a steep modern isometric camera.
+- Detailed Robotropolis corridor geometry with machinery panels, vents, fans, conduits, hazard strips and layered foreground piping.
+- Banded 3D materials, dynamic lights and shadows, palette quantization, dithering and subtle scanlines.
+- Versioned Web exports through `/game/#/v1/<commit>` while retaining prior builds.
+
+## Run locally
+
+1. Install Godot 4.7.1.
+2. Import [`godot/project.godot`](godot/project.godot) in the Project Manager.
+3. Press **F5**.
+
+The Web preset uses the Compatibility renderer without thread support.
+
+## Art pipeline
+
+The current meshes and materials are original prototype assets assembled with Godot-native geometry, so the game stays fully three-dimensional and dynamically lit. They are no longer flat blockout cubes, but they are still replaceable production placeholders.
+
+The next asset pass should import a modular CC0 industrial GLTF kit through Godot scenes or `GridMap`/`MeshLibrary`, while retaining the current collision, interaction and shader layer. A finished character should use a clean reusable skeleton and authored clips through `AnimationPlayer` and `AnimationTree`; the present articulated model establishes proportions and state readability without redistributing SEGA artwork.
+
+See [`docs/GODOT_MIGRATION.md`](docs/GODOT_MIGRATION.md) for the architectural migration notes.
+
+## Legacy browser prototype
 
 ```bash
 npm install
-```
-
-```bash
 npm run dev
 ```
 
 Then open <http://localhost:8080>.
 
-```bash
-npm run build
-```
-
-Output lands in `dist/` and is fully static.
-
----
-
-## Controls
-
-| Action | Keyboard | Gamepad |
-|---|---|---|
-| Move | `←` `→` / `A` `D` | Left stick / D-pad |
-| Look up / Crouch | `↑` `↓` / `W` `S` | Left stick |
-| Jump | `Space` / `K` | A |
-| Throw ring | `J` / `F` | X |
-| **Buzzsaw** | hold `↓` + `Space`, then release | hold Down + A |
-| **Spike blast** | `↓` in mid-air | Down in mid-air |
-| **Corner peek** | hold `Q` at an edge | LB |
-| Ledge grab | automatic while falling | — |
-| Climb up / drop | `↑` / `↓` while hanging | — |
-| Ride a skiff | jump into its grab bar | — |
-| Pause | `Esc` / `P` | Start |
-
----
-
-## What's implemented
-
-**Mechanics** — ledge grab + climb, corner peek (with camera push-ahead), edge teeter,
-tightrope balance on thin pipes, ring collect, ring throw, buzzsaw charge-dash, spike-blast
-ground pound, skiff riding, stomping, one-way platforms, coyote time, jump buffering,
-variable jump height.
-
-**Enemies**
-- **Spyphid** — flying camera badnik. Hovers, sweeps a scan cone, flashes its lens as a tell,
-  then dives. Killed by ring throw, buzzsaw, blast shockwave or a stomp.
-- **Slipstream Skiff** — flat hover-craft on a patrol path with a grab bar underneath. Ride it
-  across the wide pit, or destroy it (2 HP).
-- **SWATbot** — armoured biped. Patrols, spots you, charges three orbs up its cannon, fires.
-  **Front-armoured**: ring throws deflect off the chest plate, so go over it or through it.
-
-**Hazards** — bottomless pits (respawn at the last checkpoint), spike columns that only a
-buzzsaw or spike blast can break.
-
-**Collectibles** — rings (health + ammo + score) and ring monitors (+10).
-
-**Health** — rings are your health. A hit costs 40 % of your current rings (min 5, max 20),
-scattered as re-collectable bouncing rings, plus 1.2 s of invulnerability. A hit at zero
-rings kills you.
-
-**Level 1 — "Sludge Refinery"** reproduces the ten beats of the reference footage end to end,
-from the sewer climb-out to the blast-door rendezvous with the ally.
-
----
-
-## Architecture
-
-| Layer | Tech |
-|---|---|
-| Shell | SolidJS + Vite |
-| Framework | Phaser 3.90 — scenes, input, 2D menus/HUD |
-| 3D renderer | three.js 0.170 — meshes, lights, shadow maps, ortho camera |
-| Simulation | **custom ECS** (`src/game/core/ecs`) |
-| Physics | **custom kinematic AABB** — a rigid-body solver would ruin the feel |
-
-Two stacked canvases: three.js renders the world at `z-index: 0`, Phaser runs transparent at
-`z-index: 1` for menus, HUD and fades.
-
-The ECS runs a **fixed 60 Hz** pipeline of 18 systems; `dt` is scaled by
-`GAME_SPEED = 1.25` so the whole simulation runs 25 % faster than classic pacing, from a
-single knob in `src/game/config/GameConfig.ts`.
-
-```
-src/game/
-  config/      GameConfig (every tunable), Controls
-  core/        ecs/, CollisionWorld, InputState, Signal, MathUtils
-  components/  the full component catalogue
-  systems/     18 systems, run in dependency order
-  render/      Renderer3D, IsoCamera, Materials, Meshes, TextureFactory
-    rig/       Rig, Clips (16 keyframe clips), AnimationPlayer, character rigs
-    fx/        pooled particles
-  world/       LevelSchema, LevelBuilder, Factories, levels/Level01
-  ui/          ManiaTheme — the vector-drawn menu language
-  scenes/      Boot, Menu, Controls, Game, Hud, Pause
-```
-
-Full detail in **[docs/DESIGN.md](docs/DESIGN.md)** and **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)**.
-
----
-
-## Tuning it
-
-Almost everything worth changing lives in `src/game/config/GameConfig.ts`:
-
-- `GAME_SPEED` — global pace multiplier (currently `1.25`)
-- `PHYSICS` — acceleration, friction, jump, buzzsaw, spike blast
-- `PLAYER` — collider size, ledge-grab window, ring economy, throw arc
-- `CAMERA` — **`yaw` / `pitch` set the locked isometric angle**, plus follow and look-ahead
-- `COMBAT` — enemy ranges, tells, cooldowns
-
-Levels are plain data (`src/game/world/levels/Level01.ts`) against the schema in
-`LevelSchema.ts`, so an editor or an exporter for another engine can target the same format.
-
----
-
-## Art pipeline
-
-There is no art pipeline yet — deliberately, at this stage:
-
-- **Textures** are drawn into `<canvas>` at boot (`render/TextureFactory.ts`): brick, plating,
-  gravel, grate, monitor screen, blob shadow, sparks.
-- **Characters** are assembled from three.js primitives (`render/rig/*Rig.ts`) onto a named
-  bone hierarchy.
-- **Animation** is 16 hand-authored keyframe clips (`render/rig/Clips.ts`) with cross-fading
-  and one-shot overlays.
-
-To swap in real models later, keep the bone names (`hips`, `torso`, `head`, `armL/R`,
-`legL/R`, `footL/R`, `ball`) and the existing clip set will drive them unchanged.
-
----
-
-## Known gaps
-
-- No audio yet.
-- Only Act 1 exists.
-- Options and Extras menu entries are stubs.
-- Enemy variety is the three types from the reference footage.
+> **Legal note:** Sonic the Hedgehog, Sally Acorn, SWATbots, Badniks, rings and related marks are owned by SEGA. This repository does not redistribute SEGA game assets; its models, shaders and environment assets are original to this technical study.
