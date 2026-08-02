@@ -114,11 +114,9 @@ func _update_standard_movement(delta: float) -> void:
     if hidden_against_wall:
         desired *= Vector3(0.36, 0.0, 0.0)
         _set_state(STATE_WALL_HIDE)
-    else:
-        var horizontal_input := Vector2(desired.x, desired.z)
-        if horizontal_input.length() > 0.08:
-            facing = signf(desired.x) if absf(desired.x) > 0.08 else facing
-            last_move_direction = Vector3(desired.x, 0.0, desired.z).normalized()
+    elif Vector2(desired.x, desired.z).length() > 0.08:
+        facing = signf(desired.x) if absf(desired.x) > 0.08 else facing
+        last_move_direction = Vector3(desired.x, 0.0, desired.z).normalized()
 
     var horizontal := Vector3(velocity.x, 0.0, velocity.z)
     if desired.length_squared() > 0.001:
@@ -260,7 +258,7 @@ func _spawn_spike_burst() -> void:
         projectile.global_position = global_position + Vector3.UP * 0.78
 
 
-func take_damage(source_position: Vector3 = global_position) -> void:
+func take_damage(source_position: Vector3 = Vector3.ZERO) -> void:
     if invulnerability_remaining > 0.0 or state == STATE_BUZZSAW:
         return
 
@@ -276,7 +274,10 @@ func take_damage(source_position: Vector3 = global_position) -> void:
     ability_remaining = 0.42
     hidden_against_wall = false
 
-    var away := (global_position - source_position)
+    var actual_source := source_position
+    if actual_source.is_equal_approx(Vector3.ZERO):
+        actual_source = global_position + Vector3(facing, 0.0, 0.0)
+    var away := global_position - actual_source
     away.y = 0.0
     if away.length_squared() < 0.01:
         away = Vector3(-facing, 0.0, 0.0)
@@ -495,11 +496,12 @@ func _install_default_input() -> void:
 func _ensure_keyboard_action(action: StringName, keycodes: Array) -> void:
     _ensure_input_action(action)
     for keycode in keycodes:
+        var already_bound := false
         for existing_event in InputMap.action_get_events(action):
             if existing_event is InputEventKey and existing_event.physical_keycode == keycode:
-                keycode = KEY_NONE
+                already_bound = true
                 break
-        if keycode == KEY_NONE:
+        if already_bound:
             continue
         var event := InputEventKey.new()
         event.physical_keycode = keycode
