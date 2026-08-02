@@ -9,7 +9,19 @@ This directory is a vertical slice for rebuilding the Sonic 16 concept with engi
 - Compatibility renderer
 - Web export without thread support
 
-## Run
+## Online builds
+
+Every pushed Godot revision on `main` or `agent/godot-prototype` is exported for Web and published as an immutable GitHub Pages build:
+
+```text
+https://t-damer.github.io/sonic-16/game/v1/<12-character-commit-sha>/
+```
+
+The build also contains `build.json` with the full commit SHA, source branch, publication time and Actions run URL. Previous commit builds are retained rather than replaced.
+
+The repository must have GitHub Pages configured once to deploy from the `gh-pages` branch at `/ (root)`.
+
+## Run locally
 
 1. Install Godot 4.7.1.
 2. Import `godot/project.godot` in the Project Manager.
