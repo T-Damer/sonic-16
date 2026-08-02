@@ -2,55 +2,63 @@
 
 ## Decision
 
-Use Godot 4.7.1 with GDScript as the primary game project. Keep the existing Phaser/Three/Solid implementation temporarily as a reference until the Godot vertical slice is accepted.
+Use Godot 4.7.1 with GDScript as the primary game project. Keep the earlier Phaser/Three/Solid implementation as a reference until the Godot vertical slice is accepted.
 
-This is not a renderer swap. It removes the custom engine layer that currently owns basic responsibilities already implemented and tested by a game engine.
+The migration removes the custom engine layer that previously owned basic responsibilities already implemented by Godot: input event lifetime, collision resolution, moving-platform integration, rendering, lighting and scene composition.
 
 ## What is replaced
 
 | Existing TypeScript layer | Godot replacement |
 | --- | --- |
-| Custom ECS and 18-system pipeline | Scene tree, nodes, groups, signals and small component scripts |
+| Custom ECS and 18-system pipeline | Scene tree, nodes, groups, signals and focused scripts |
 | Custom 2D AABB broadphase/sweeps | `CharacterBody3D`, `StaticBody3D`, `AnimatableBody3D`, physics layers |
-| Custom DOM/Gamepad input snapshot | `InputMap` and `Input` |
-| Three.js renderer and shadow-frustum management | Godot Compatibility renderer, lights, shadows and `WorldEnvironment` |
-| Procedural primitive rigs | `AnimatedSprite3D` now; imported GLTF rigs later |
-| Hand-written keyframe player | `AnimationPlayer` and `AnimationTree` |
-| Plain 2D level schema | Authored scenes and, after importing a modular kit, `GridMap`/`MeshLibrary` |
+| Custom DOM/Gamepad snapshot | `InputMap` and `Input` |
+| Three.js renderer and shadow-frustum management | Compatibility renderer, native lights, shadows and `WorldEnvironment` |
+| Hand-written primitive rig animation runtime | Articulated prototype rig now; `AnimationPlayer`/`AnimationTree` for imported production rigs |
+| Plain two-dimensional level schema | Authored scenes and a future modular `GridMap`/`MeshLibrary` |
 | Phaser HUD canvas | `CanvasLayer` and `Control` nodes |
 | Custom moving-platform carry logic | `AnimatableBody3D` platform velocity integration |
 
-## Why not another browser-first JavaScript engine
+## Reference-driven change of direction
 
-Babylon.js and PlayCanvas would improve rendering and asset import, but the project would still need to own the character controller, gameplay state composition, collision conventions, animation state integration and editor workflow. Godot removes more of the handwritten foundation while still exporting to WebAssembly/WebGL 2.
+The first Godot spike used a steep generic isometric camera and read more like a modern diorama. The surviving Sonic-16 pitch footage instead shows a low-oblique 2.5D corridor: the game remains a side-scroller, but the floor is wide enough for foreground/background movement.
 
-GDScript is intentional: Godot 4 C# projects do not currently export to the web. The Compatibility renderer and a non-threaded web preset provide the least demanding deployment path.
+The current pass therefore uses:
 
-## Prototype acceptance criteria
+- a much lower orthographic camera pitch and only a slight yaw;
+- a 320×200 internal viewport;
+- a constrained X/Z movement lane;
+- slower acceleration, shorter jumps and more deliberate platforming;
+- large articulated 3D silhouettes rather than tiny sprites;
+- enclosed Robotropolis machinery rather than an exterior skyline;
+- banded lighting, palette quantization and dithering to make real-time 3D resemble authored 16-bit artwork.
 
-Before porting combat or cutscenes, approve these items in `godot/`:
+## Gameplay parity targets now implemented
 
-1. Movement reads correctly in screen space and supports useful depth movement.
-2. Jump is deterministic on keyboard and gamepad, including coyote time and buffering.
-3. The camera angle resembles the reference without hiding platform edges.
-4. Native collision feels stable on ramps, obstacles and the moving skiff.
-5. The lighting and Robotropolis silhouette give enough depth at the low internal resolution.
-6. Pixel characters are readable at gameplay scale.
+- Ring Attack that consumes ring ammunition.
+- Buzzsaw as a short airborne damaging dash.
+- Spike Blast as a radial airborne projectile burst.
+- Foreground/background lane movement.
+- Holding against the back wall to reduce detection and peek around a corner.
+- Automatic ledge grab, climb and drop.
+- Surveillance camera enemies with line-of-sight fire.
+- Armoured SWATbots whose front plate deflects ordinary ring shots.
+- A Buzzsaw/Spike-Blast breakable barricade.
+- Moving skiff platform, checkpoints, arena and rendezvous door.
 
 ## Asset policy
 
-- Do not ship ripped SEGA models, animation clips, backgrounds or sprites.
+- Do not ship ripped SEGA models, sprites, backgrounds, animation clips or audio.
+- Keep prototype assets original and replaceable.
 - Prefer CC0 modular environment packs and retain their license/readme files.
-- For the hero and ally, use original fan-made pixel art during prototyping.
-- Move to 3D only when a model has clean topology, a reusable skeleton and authored idle/run/jump/fall clips.
-- Import GLTF directly into Godot and keep animation transitions in `AnimationTree`; do not recreate a second animation runtime.
+- Import GLTF directly into Godot and keep transitions in `AnimationTree`; do not recreate another animation runtime.
+- Keep gameplay collision in dedicated nodes so decorative assets can be swapped without changing mechanics.
 
 ## Next porting order
 
-1. Replace runtime blockout helpers with a GridMap and a selected CC0 industrial kit.
-2. Add a camera-drone enemy as a small scene with `Area3D` detection and `AnimationPlayer` tells.
-3. Add Ring Attack as a reusable projectile scene.
-4. Add Buzzsaw and Spike Blast as states in the player controller.
-5. Recreate the skiff grab/ride interaction using joints or a dedicated attachment point.
-6. Build the blast-door rendezvous with `AnimationPlayer` and a short cutscene state.
-7. Add audio and web export automation.
+1. Replace the runtime-built corridor pieces with a selected CC0 industrial GLTF kit and a `MeshLibrary` while preserving current metrics and collision.
+2. Replace the articulated prototype hero with a clean rigged model and authored idle/run/jump/hide/hang/Buzzsaw/Spike-Blast clips.
+3. Add the skiff grab-bar attachment rather than only riding its upper platform.
+4. Expand camera and SWATbot tells, hit reactions and effects.
+5. Add a short Sally rendezvous sequence driven by `AnimationPlayer`.
+6. Add original audio, impact effects and Web-export size optimization.
