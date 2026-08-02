@@ -90,6 +90,10 @@ jobs:
           mkdir -p "$template_dir"
           unzip -q -o -j export-templates.tpz -d "$template_dir"
 
+          echo "Godot executable: $(./godot-bin --version)"
+          echo "Installed Web templates:"
+          find "$template_dir" -maxdepth 1 -type f -name 'web_*' -printf '%f %s bytes\n' | sort
+
       - name: Export versioned Web build
         id: version
         shell: bash
@@ -101,7 +105,8 @@ jobs:
           output_dir="pages-site/${version_path}"
 
           mkdir -p "$output_dir"
-          ./godot-bin --headless --path godot --export-release Web "$output_dir/index.html"
+          ./godot-bin --headless --verbose --path godot --editor --quit-after 3
+          ./godot-bin --headless --verbose --path godot --export-release Web "$output_dir/index.html"
 
           test -f "$output_dir/index.html"
           test -f "$output_dir/index.wasm"
@@ -110,7 +115,7 @@ jobs:
           jq -n \
             --arg commit "$BUILD_SHA" \
             --arg shortCommit "$short_sha" \
-            --arg ref "$GITHUB_HEAD_REF${GITHUB_HEAD_REF:+ (pull request)}" \
+            --arg ref "${GITHUB_HEAD_REF:-$GITHUB_REF_NAME}" \
             --arg workflowRun "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" \
             --arg publishedAt "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
             '{commit: $commit, shortCommit: $shortCommit, ref: $ref, workflowRun: $workflowRun, publishedAt: $publishedAt}' \
