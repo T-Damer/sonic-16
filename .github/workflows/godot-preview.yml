@@ -1,0 +1,253 @@
+name: Publish Godot preview
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_ref:
+        description: Branch, tag, or commit containing the Godot project
+        required: true
+        default: agent/godot-prototype
+        type: string
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/godot-preview.yml"
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: sonic-16-pages
+  cancel-in-progress: false
+
+env:
+  GODOT_VERSION: 4.7.1-stable
+  SOURCE_REF: ${{ github.event.inputs.source_ref || 'agent/godot-prototype' }}
+
+jobs:
+  build:
+    name: Build Godot preview
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    outputs:
+      build_type: ${{ steps.pages.outputs.build_type }}
+      short_sha: ${{ steps.export.outputs.short_sha }}
+      hash_path: ${{ steps.export.outputs.hash_path }}
+
+    steps:
+      - name: Check out selected source revision
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ env.SOURCE_REF }}
+          path: source
+
+      - name: Resolve immutable source commit
+        id: source
+        shell: bash
+        run: echo "sha=$(git -C source rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Check out retained Pages files
+        uses: actions/checkout@v6
+        with:
+          ref: gh-pages
+          path: pages-site
+          fetch-depth: 1
+
+      - name: Download Godot and Web export templates
+        working-directory: source
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          curl -L --fail --retry 3 \
+            -o godot.zip \
+            "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_linux.x86_64.zip"
+          unzip -q godot.zip
+          mv "Godot_v${GODOT_VERSION}_linux.x86_64" godot-bin
+          chmod +x godot-bin
+
+          curl -L --fail --retry 3 \
+            -o export-templates.tpz \
+            "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}/Godot_v${GODOT_VERSION}_export_templates.tpz"
+
+          template_dir="$HOME/.local/share/godot/export_templates/4.7.1.stable"
+          mkdir -p "$template_dir"
+          unzip -q -o -j export-templates.tpz -d "$template_dir"
+
+      - name: Validate and export immutable Web build
+        id: export
+        shell: bash
+        env:
+          SOURCE_SHA: ${{ steps.source.outputs.sha }}
+        run: |
+          set -euo pipefail
+
+          short_sha="${SOURCE_SHA:0:12}"
+          version_path="game/v1/${short_sha}"
+          pages_root="${GITHUB_WORKSPACE}/pages-site"
+          output_dir="${pages_root}/${version_path}"
+
+          mkdir -p "$output_dir"
+          source/godot-bin --headless --path source/godot --editor --quit-after 3
+          source/godot-bin --headless --path source/godot --quit-after 5
+          source/godot-bin --headless --path source/godot --export-release Web "$output_dir/index.html"
+
+          test -f "$output_dir/index.html"
+          test -f "$output_dir/index.wasm"
+          test -f "$output_dir/index.pck"
+
+          jq -n \
+            --arg commit "$SOURCE_SHA" \
+            --arg shortCommit "$short_sha" \
+            --arg ref "$SOURCE_REF" \
+            --arg workflowRun "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" \
+            --arg publishedAt "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            '{commit: $commit, shortCommit: $shortCommit, ref: $ref, workflowRun: $workflowRun, publishedAt: $publishedAt}' \
+            > "$output_dir/build.json"
+
+          mkdir -p "$pages_root/game"
+          jq -n \
+            --arg commit "$SOURCE_SHA" \
+            --arg shortCommit "$short_sha" \
+            --arg path "$version_path" \
+            '{commit: $commit, shortCommit: $shortCommit, path: $path}' \
+            > "$pages_root/game/latest.json"
+
+          cat > "$pages_root/game/index.html" <<'HTML'
+          <!doctype html>
+          <html lang="en">
+            <head>
+              <meta charset="utf-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1">
+              <title>Sonic 16 Godot previews</title>
+              <style>
+                html, body, iframe { width: 100%; height: 100%; margin: 0; border: 0; }
+                body { background: #081522; color: #d9f2ff; font: 16px/1.5 system-ui, sans-serif; }
+                main { box-sizing: border-box; max-width: 48rem; margin: 4rem auto; padding: 0 1.25rem; }
+                code { color: #ffd154; }
+              </style>
+            </head>
+            <body>
+              <main id="status"><h1>Sonic 16 Godot previews</h1><p>Loading preview…</p></main>
+              <script>
+                const status = document.getElementById('status');
+                const match = location.hash.match(/^#\/v1\/([0-9a-f]{7,40})\/?$/i);
+                const openRevision = (revision) => {
+                  const frame = document.createElement('iframe');
+                  frame.src = `./v1/${revision}/index.html`;
+                  frame.title = `Sonic 16 Godot build ${revision}`;
+                  frame.allow = 'autoplay; fullscreen; gamepad';
+                  status.replaceWith(frame);
+                };
+                if (match) {
+                  openRevision(match[1].toLowerCase());
+                } else {
+                  fetch('./latest.json', { cache: 'no-store' })
+                    .then((response) => response.ok ? response.json() : Promise.reject(new Error(`HTTP ${response.status}`)))
+                    .then((latest) => location.replace(`#/v1/${latest.shortCommit}`))
+                    .catch((error) => {
+                      status.innerHTML = `<h1>Sonic 16 Godot previews</h1><p>Use <code>#/v1/&lt;commit&gt;</code>.</p><p>${error}</p>`;
+                    });
+                }
+              </script>
+            </body>
+          </html>
+          HTML
+
+          cat > "$pages_root/404.html" <<'HTML'
+          <!doctype html>
+          <html lang="en">
+            <head><meta charset="utf-8"><title>Redirecting preview…</title></head>
+            <body>
+              <script>
+                const match = location.pathname.match(/^(.*\/game)\/v1\/([0-9a-f]{7,40})(?:\/.*)?$/i);
+                if (match) location.replace(`${match[1]}/#/v1/${match[2].toLowerCase()}`);
+                else document.body.textContent = 'Not found';
+              </script>
+            </body>
+          </html>
+          HTML
+
+          touch "$pages_root/.nojekyll"
+          echo "short_sha=$short_sha" >> "$GITHUB_OUTPUT"
+          echo "version_path=$version_path" >> "$GITHUB_OUTPUT"
+          echo "hash_path=game/#/v1/$short_sha" >> "$GITHUB_OUTPUT"
+
+      - name: Upload downloadable Godot build
+        uses: actions/upload-artifact@v4
+        with:
+          name: sonic-16-godot-${{ steps.export.outputs.short_sha }}
+          path: pages-site/${{ steps.export.outputs.version_path }}
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Retain immutable files in gh-pages
+        working-directory: pages-site
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add -A
+          if ! git diff --cached --quiet; then
+            git commit -m "Publish Godot build ${{ steps.export.outputs.short_sha }}"
+            git push origin HEAD:gh-pages
+          fi
+
+      - name: Detect Pages publishing mode
+        id: pages
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          response="$(curl -fsSL \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/pages" || true)"
+          build_type="$(jq -r '.build_type // "disabled"' <<<"${response:-{}}")"
+          echo "build_type=$build_type" >> "$GITHUB_OUTPUT"
+          echo "Pages publishing mode: $build_type"
+
+      - name: Upload complete Pages site
+        if: steps.pages.outputs.build_type == 'workflow'
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: pages-site
+          include-hidden-files: true
+
+      - name: Add preview links to workflow summary
+        shell: bash
+        run: |
+          base="https://${GITHUB_REPOSITORY_OWNER,,}.github.io/${GITHUB_REPOSITORY#*/}"
+          {
+            echo "## Godot preview"
+            echo
+            echo "Hash route: ${base}/${{ steps.export.outputs.hash_path }}"
+            echo
+            echo "Physical file: ${base}/${{ steps.export.outputs.version_path }}/index.html"
+            echo
+            echo "Pages mode: ${{ steps.pages.outputs.build_type }}"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  deploy:
+    name: Deploy GitHub Pages
+    needs: build
+    if: needs.build.outputs.build_type == 'workflow'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Deploy Pages artifact
+        id: deployment
+        uses: actions/deploy-pages@v4
