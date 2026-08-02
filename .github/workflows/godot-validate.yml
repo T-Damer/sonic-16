@@ -67,6 +67,10 @@ jobs:
     permissions:
       contents: write
       pages: write
+    outputs:
+      pages_configured: ${{ steps.pages.outcome }}
+      short_sha: ${{ steps.version.outputs.short_sha }}
+      hash_path: ${{ steps.version.outputs.hash_path }}
 
     steps:
       - name: Check out source revision
@@ -206,8 +210,7 @@ jobs:
           </html>
           HTML
 
-          # GitHub Pages uses this fallback only when a physical file was not found.
-          # Convert old directory-style preview URLs to the hash-router URL.
+          # Convert the old directory-style preview URL to the hash-router URL.
           cat > "$pages_root/404.html" <<'HTML'
           <!doctype html>
           <html lang="en">
@@ -253,17 +256,22 @@ jobs:
             git push origin HEAD:gh-pages
           fi
 
-      - name: Configure GitHub Pages
-        uses: actions/configure-pages@v5
-
       - name: Upload complete Pages site
         uses: actions/upload-pages-artifact@v4
         with:
           path: pages-site
           include-hidden-files: true
 
+      - name: Detect whether GitHub Pages is enabled
+        id: pages
+        continue-on-error: true
+        uses: actions/configure-pages@v5
+
       - name: Add preview paths to workflow summary
+        if: always()
         shell: bash
+        env:
+          PAGES_OUTCOME: ${{ steps.pages.outcome }}
         run: |
           base="https://${GITHUB_REPOSITORY_OWNER,,}.github.io/${GITHUB_REPOSITORY#*/}"
           {
@@ -272,11 +280,18 @@ jobs:
             echo "Hash route: ${base}/${{ steps.version.outputs.hash_path }}"
             echo
             echo "Physical file: ${base}/${{ steps.version.outputs.version_path }}/index.html"
+            echo
+            if [ "$PAGES_OUTCOME" = "success" ]; then
+              echo "GitHub Pages is enabled; the deployment job will publish this artifact."
+            else
+              echo "GitHub Pages is not enabled yet. In Settings → Pages, select GitHub Actions as the source, then rerun this workflow."
+            fi
           } >> "$GITHUB_STEP_SUMMARY"
 
   deploy-pages:
     name: Deploy GitHub Pages
     needs: build-pages
+    if: needs.build-pages.outputs.pages_configured == 'success'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
